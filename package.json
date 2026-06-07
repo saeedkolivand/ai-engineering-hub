@@ -1,0 +1,20 @@
+{
+  "name": "ai-engineering-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm -C apps/ai-engineering-hub/src/frontend dev",
+    "build": "pnpm -C apps/ai-engineering-hub/src/frontend build",
+    "tauri:dev": "pnpm -C apps/ai-engineering-hub/src/frontend tauri dev",
+    "tauri:build": "pnpm -C apps/ai-engineering-hub/src/frontend tauri build",
+    "test": "pnpm -C apps/ai-engineering-hub/src/frontend test"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^1.12.5"
+  }
+}
