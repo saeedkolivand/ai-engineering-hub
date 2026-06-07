@@ -19,45 +19,20 @@ pub mod db;
 use db::AppState;
 mod collector;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .init();
+use tauri::Manager;
 
-    // Initialize database
-    let pool = db::init_db().await?;
-
-    // Run migrations
-    sqlx::migrate!("./migrations").run(&pool).await?;
-    tracing::info!("Database migrations applied successfully");
-
-    // Create broadcast channel for WebSocket events
-    let (tx, _) = broadcast::channel::<Value>(128);
-
-    // Create shared state
-    let app_state = Arc::new(AppState { pool, tx });
-    // Start metrics collector watcher
-    let metrics_dir = std::env::current_dir()?.join("metrics");
-    let _collector_handle = tokio::spawn(async move {
-        let _ = collector::start_watcher(app_state.clone(), metrics_dir).await;
-    });
-
-    // Build the app
-    let app = Router::new()
-        .route("/", get(root_handler))
-        .merge(routes::router())
-        .merge(routes::api_router())
-        .route("/ws/metrics", get(ws::ws_handler))
-        .with_state(app_state);
-
-    // Start server
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::info!("AI Engineering Hub starting on {}", addr);
-    let listener = TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+#[tauri::command]
+async fn start_backend(state: tauri::State<'_, db::AppState>) -> Result<(), String> {
+    // The backend is already running; this is a placeholder for future commands.
     Ok(())
+}
+
+fn main() {
+    tauri::Builder::default()
+        .manage(db::init_db_blocking())
+        .invoke_handler(tauri::generate_handler![start_backend])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
 
 async fn root_handler() -> impl IntoResponse {

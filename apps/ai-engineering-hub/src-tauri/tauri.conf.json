@@ -1,0 +1,26 @@
+{
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "../src/frontend/dist",
+    "distDir": "../src/frontend/dist"
+  },
+  "package": {
+    "productName": "AI Engineering Hub",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true
+    },
+    "windows": [
+      {
+        "title": "AI Engineering Hub",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  }
+}
