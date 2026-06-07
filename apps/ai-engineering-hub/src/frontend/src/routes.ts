@@ -14,7 +14,7 @@ export const routes = rootRoute.addChildren([
   sessionRoute,
   taskRoute,
   agentRoute,
-  analyticsRoute,
+    analyticsRoute,
   activityRoute,
   settingsRoute,
 ]);
