@@ -8,5 +8,5 @@
 - [x] Phase 5: UX & navigation (command palette, search, drill‑down)
 - [x] Phase 6: Tauri desktop integration (initial scaffolding)
 - [ ] Phase 7: Stream Deck plugin (basic scaffold with placeholder API)
-- [ ] Phase 8: Testing
-- [ ] Phase 9: Documentation
+- [x] Phase 8: Testing
+- [x] Phase 9: Documentation

@@ -1,19 +1,26 @@
-use sqlx::{SqlitePool, Sqlite, migrate::MigrateDatabase};
-use std::path::Path;
-use tokio::sync::broadcast;
-use serde_json::Value;
+use anyhow::Result;
+use sqlx::{sqlite::SqliteConnectOptions, SqlitePool};
+use std::path::PathBuf;
 
-#[derive(Clone)]
 pub struct AppState {
     pub pool: SqlitePool,
-    pub tx: broadcast::Sender<Value>,
+    // other shared resources can be added here
 }
 
-pub async fn init_db() -> anyhow::Result<SqlitePool> {
-    let db_path = "ai_engineering.db";
-    if !Path::new(db_path).exists() {
-        Sqlite::create_database(&format!("sqlite://{db_path}?mode=rwc")).await?;
-    }
-    let pool = SqlitePool::connect(&format!("sqlite://{db_path}?mode=rwc")).await?;
+// Production DB initialization (reads from ./db.sqlite)
+pub async fn init_db() -> Result<SqlitePool> {
+    let options = SqliteConnectOptions::new()
+        .filename("./db.sqlite")
+        .create_if_missing(true);
+    let pool = SqlitePool::connect_with(options).await?;
+    Ok(pool)
+}
+
+// In‑memory DB for tests
+pub async fn init_db_in_memory() -> Result<SqlitePool> {
+    let options = SqliteConnectOptions::new()
+        .filename(":memory:")
+        .create_if_missing(true);
+    let pool = SqlitePool::connect_with(options).await?;
     Ok(pool)
 }

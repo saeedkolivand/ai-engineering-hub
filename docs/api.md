@@ -1,19 +1,45 @@
-# Backend API Reference
+# API Documentation
 
-All endpoints are served under `http://localhost:3000/api`.
+## HTTP Endpoints
 
-| Method | Path                 | Description                                 | Response Example |
-|--------|----------------------|---------------------------------------------|------------------|
-| GET    | `/repositories`      | List all repositories                        | `{ "repositories": [...] }` |
-| GET    | `/sessions`          | List sessions                               | `{ "sessions": [...] }` |
-| GET    | `/tasks`             | List tasks                                  | `{ "tasks": [...] }` |
-| GET    | `/agents`            | List agents                                 | `{ "agents": [...] }` |
-| GET    | `/analytics`         | Token, savings, productivity metrics        | `{ "tokens": [...], "savings": [...], "productivity": [...] }` |
-| GET    | `/activity`          | Activity feed events                        | `{ "events": [...] }` |
-| GET    | `/settings`          | Current user settings                       | `{ "theme": "light", "apiEndpoint": "...", "enableTelemetry": false }` |
-| POST   | `/settings`          | Save user settings                          | `{ "success": true }` |
-| GET    | `/health`            | Simple health check                         | `{ "status": "ok" }` |
-| GET    | `/ws/metrics` (WS)   | WebSocket streaming live metric updates     | `HubEvent` messages |
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/repositories` | List repositories with analytics |
+| `GET` | `/api/sessions` | List sessions |
+| `GET` | `/api/tasks` | List tasks |
+| `GET` | `/api/agents` | List agents |
+| `GET` | `/api/metrics` | Retrieve metric records |
+| `GET` | `/ws/metrics` | WebSocket streaming of live metrics |
 
-All responses are JSON and conform to the contracts defined in
-`packages/shared-api-contracts` (to be added).
+All endpoints return JSON payloads and are typed with `serde`.
+
+## WebSocket Events
+
+The WebSocket streams events of type:
+
+```json
+{
+  "type": "Metric",
+  "payload": {
+    "id": "string",
+    "task_id": "string | null",
+    "metric_type": "string",
+    "value": number,
+    "unit": "string | null",
+    "recorded_at": "ISO8601 timestamp"
+  }
+}
+```
+
+Clients should subscribe to the `/ws/metrics` endpoint to receive real‑time updates.
+
+## Tauri Commands (Frontend ↔ Backend)
+
+- `start_backend` – placeholder to ensure the backend is ready.  
+- Additional commands can be added in `src/backend/src/main.rs` as needed.
+
+## Stream Deck Plugin Commands
+
+- `get_latest_metrics` – Returns an array of the most recent metrics (placeholder implementation).
+
+All commands are exposed via Tauri’s IPC layer and can be invoked from the frontend or a Stream Deck plugin.

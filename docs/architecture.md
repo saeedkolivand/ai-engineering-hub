@@ -1,67 +1,27 @@
-# Architecture Documentation
+# Architecture Overview
 
-## Domain Model
+The **AI Engineering Hub** is a single‑process Tauri v2 application written in Rust with a React + TypeScript frontend.
 
-| Entity          | Description                                    |
-|-----------------|------------------------------------------------|
-| Repository      | Source code repository (id, name, path).      |
-| Session         | Execution of a repository run (start/end).     |
-| Task            | Individual unit of work within a session.      |
-| Agent           | AI model instance (provider, model id).        |
-| Metric          | Quantitative data (tokens, savings, etc.).     |
-| ActivityEvent   | Timeline event linking repositories, tasks, agents.
+## Core Components
 
-## Bounded Contexts
-
-1. **Metrics Collector** – ingest logs, JSON, files; store in SQLite.
-2. **Analytics Engine** – compute token usage, savings, productivity.
-3. **Repository Intelligence** – query repository‑level stats, hotspots.
-4. **Frontend UI** – React app with TanStack tables, virtualized lists.
-5. **Stream Deck Integration** – lightweight consumer of Hub WebSocket.
+| Layer | Technology | Responsibility |
+|-------|------------|----------------|
+| **Backend** | Rust (Axum, Tokio, SQLx, Tauri) | HTTP API, WebSocket streams, metrics collector, SQLite persistence |
+| **Frontend** | React, TypeScript, TanStack suite | UI, routing, data fetching, virtualized tables, command palette |
+| **Desktop Shell** | Tauri v2 | Bundles backend + frontend, provides native APIs |
+| **Stream Deck Plugin** | Rust (Tauri) | Consumes Hub APIs via IPC, displays live metrics on a Stream Deck |
 
 ## Data Flow
 
-```
-[CLI / Tools] → Metrics Collector → SQLite DB → Analytics Engine →
-   ↘︎                               ↙︎
-   UI (React) ←→ Axum API ←→ WebSocket ← Stream Deck Plugin
-```
+1. **Metrics Collector** watches a `metrics/` folder, parses JSON logs and writes to SQLite.  
+2. **Backend** serves REST endpoints and a WebSocket (`/ws/metrics`) that streams live events.  
+3. **Frontend** uses TanStack Query to fetch data and TanStack Table to render large tables efficiently.  
+4. **Stream Deck Plugin** invokes Tauri commands to fetch the latest metrics and renders them on a hardware device.
 
-All components run inside a single Tauri binary; no side‑car processes.
+## Design Principles
 
-## Event Contracts
-
-All events are defined in `packages/shared-api-contracts` (future addition) and
-conform to the following TypeScript interface:
-
-```ts
-export interface HubEvent {
-  type: 'tokenUsage' | 'savings' | 'buildStatus' | 'activity';
-  payload: Record<string, unknown>;
-}
-```
-
-## Persistence
-
-SQLite schema (`src/backend/migrations`) includes tables for:
-
-- `repositories`
-- `sessions`
-- `tasks`
-- `agents`
-- `metrics`
-- `activity_events`
-
-Migrations are managed via `sqlx migrate`.
-
-## Extensibility
-
-New bounded contexts can be added by:
-
-1. Defining a domain model.
-2. Adding migration scripts.
-3. Exposing Axum routes.
-4. Consuming the data in the frontend via TanStack Query.
-
-All code follows clean‑architecture principles with dependency injection
-via `tower::ServiceBuilder` in Rust and Context providers in React.
+- **Domain‑Driven Design** – Separate bounded contexts for metrics, analytics, repository intelligence.  
+- **Clean Architecture** – `src/models`, `src/repository`, `src/service` layers with clearly defined boundaries.  
+- **Event‑Driven** – Collector emits events via a broadcast channel consumed by WebSocket and UI.  
+- **Observability** – Tracing with `tracing`/`tracing‑subscriber`.  
+- **Testing** – Unit & integration tests for DB layer, API routes, and collector logic.
