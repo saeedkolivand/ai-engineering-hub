@@ -9,25 +9,23 @@
 | `GET` | `/api/tasks` | List tasks |
 | `GET` | `/api/agents` | List agents |
 | `GET` | `/api/metrics` | Retrieve metric records |
-| `GET` | `/ws/metrics` | WebSocket streaming of live metrics |
+| `GET` | `/api/analytics` | Token usage analytics (daily, weekly, monthly) and total savings |
+| `GET` | `/api/health` | Health check endpoint |
 
 All endpoints return JSON payloads and are typed with `serde`.
 
 ## WebSocket Events
 
-The WebSocket streams events of type:
+The WebSocket streams events of type `agentMetrics`:
 
 ```json
 {
-  "type": "Metric",
-  "payload": {
-    "id": "string",
-    "task_id": "string | null",
-    "metric_type": "string",
-    "value": number,
-    "unit": "string | null",
-    "recorded_at": "ISO8601 timestamp"
-  }
+  "type": "agentMetrics",
+  "metrics": [
+    { "agent": "Claude", "tokensUsed": 12345, "tokensSaved": 2345 },
+    { "agent": "RTK", "tokensUsed": 5678, "tokensSaved": 1023 },
+    { "agent": "Graphify", "tokensUsed": 890, "tokensSaved": 150 }
+  ]
 }
 ```
 

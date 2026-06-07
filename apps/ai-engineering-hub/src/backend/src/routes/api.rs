@@ -10,11 +10,12 @@ use crate::repository::*;
 
 pub fn api_router() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
-        .route("/repositories", get(list_repositories_handler))
-        .route("/sessions", get(list_sessions_handler))
-        .route("/tasks", get(list_tasks_handler))
-        .route("/agents", get(list_agents_handler))
-        .route("/analytics", get(analytics_handler))
+        .route("/api/repositories", get(list_repositories_handler))
+        .route("/api/sessions", get(list_sessions_handler))
+        .route("/api/tasks", get(list_tasks_handler))
+        .route("/api/agents", get(list_agents_handler))
+        .route("/api/metrics", get(metrics_handler))
+        .route("/api/analytics", get(analytics_handler))
 }
 
 // Handlers
@@ -42,6 +43,13 @@ async fn list_tasks_handler(State(state): State<Arc<AppState>>) -> Json<serde_js
 async fn list_agents_handler(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
     match list_agents(&state.pool).await {
         Ok(agents) => Json(json!({ "agents": agents })),
+        Err(e) => Json(json!({ "error": e.to_string() })),
+    }
+}
+
+async fn metrics_handler(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
+    match list_metrics(&state.pool).await {
+        Ok(metrics) => Json(json!({ "metrics": metrics })),
         Err(e) => Json(json!({ "error": e.to_string() })),
     }
 }

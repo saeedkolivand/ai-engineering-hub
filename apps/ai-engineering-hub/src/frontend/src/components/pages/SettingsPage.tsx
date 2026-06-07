@@ -1,4 +1,5 @@
 import React from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
 import { Card } from 'shared-ui';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,21 +21,17 @@ export const SettingsPage: React.FC = () => {
     }),
   }).useQuery({
     queryKey: ['settings'],
-    queryFn: async () => {
-      const res = await fetch('http://localhost:3000/api/settings');
-      return res.json();
-    },
+      queryFn: async () => {
+        const res = await invoke('list_settings');
+        return res;
+      },
   });
 
   const mutation = useMutation({
-    mutationFn: async (values: Settings) => {
-      const res = await fetch('http://localhost:3000/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      return res.json();
-    },
+      mutationFn: async (values: Settings) => {
+        const res = await invoke('update_settings', { settings: values });
+        return res;
+      },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['settings'] }),
   });
 

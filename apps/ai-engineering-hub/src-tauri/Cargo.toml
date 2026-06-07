@@ -1,0 +1,28 @@
+[package]
+name = "ai-engineering-hub-tauri"
+version = "0.1.0"
+description = "AI Engineering Hub Tauri Application"
+authors = ["Saeed"]
+edition = "2021"
+
+[lib]
+name = "ai_engineering_hub_tauri"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+tauri = { version = "2.0.0-rc", features = [] }
+tauri-plugin-shell = "2.0.0-rc"
+tauri-plugin-opener = "2.0.0-rc"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio-rustls", "macros", "migrate"] }
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+futures = "0.3"
+tokio-stream = "0.1"
+notify = "6.1"
+
+[build-dependencies]
+tauri-build = "2.0.0-rc"

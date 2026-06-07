@@ -1,11 +1,10 @@
 use notify::{Watcher, RecursiveMode, Result as NotifyResult, Event, EventKind};
 use std::sync::Arc;
-use sqlx::SqlitePool;
 use serde::Deserialize;
 use std::path::PathBuf;
 use tokio::sync::mpsc;
-use futures::stream::StreamExt;
-use tokio_stream::wrappers::ReceiverStream;
+
+use crate::db::AppState;
 
 #[derive(Debug, Deserialize)]
 pub struct MetricInput {
@@ -38,23 +37,23 @@ pub async fn start_watcher(state: Arc<AppState>, metrics_dir: PathBuf) -> Notify
         // Only handle create events for files
         if let EventKind::Create(_) = event.kind {
             for path in event.paths {
-if let Some(ext) = path.extension() {
-    if ext == "json" {
+                if let Some(ext) = path.extension() {
+                    if ext == "json" {
                         // Read and insert metric
                         if let Ok(content) = tokio::fs::read_to_string(&path).await {
                             if let Ok(metric) = serde_json::from_str::<MetricInput>(&content) {
-let _ = sqlx::query(
-r#"INSERT OR IGNORE INTO metrics (id, task_id, metric_type, value, unit, recorded_at)
-   VALUES (?, ?, ?, ?, ?, ?)"#
-)
-.bind(&metric.id)
-.bind(&metric.task_id)
-.bind(&metric.metric_type)
-.bind(metric.value)
-.bind(&metric.unit)
-.bind(&metric.recorded_at)
-.execute(pool)
-.await;
+                                let _ = sqlx::query(
+                                    r#"INSERT OR IGNORE INTO metrics (id, task_id, metric_type, value, unit, recorded_at)
+                                       VALUES (?, ?, ?, ?, ?, ?)"#
+                                )
+                                .bind(&metric.id)
+                                .bind(&metric.task_id)
+                                .bind(&metric.metric_type)
+                                .bind(metric.value)
+                                .bind(&metric.unit)
+                                .bind(&metric.recorded_at)
+                                .execute(pool)
+                                .await;
                             }
                         }
                     }

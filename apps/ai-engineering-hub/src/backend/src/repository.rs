@@ -43,9 +43,39 @@ pub struct Agent {
     pub created_at: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Metric {
+    pub id: String,
+    pub task_id: Option<String>,
+    pub metric_type: String,
+    pub value: f64,
+    pub unit: Option<String>,
+    pub recorded_at: String,
+}
+
 use sqlx::Row;
 
 // Implementations – fetch data from SQLite tables.
+pub async fn list_metrics(pool: &SqlitePool) -> Result<Vec<Metric>, sqlx::Error> {
+    let rows = sqlx::query(
+        "SELECT id, task_id, metric_type, value, unit, recorded_at FROM metrics ORDER BY recorded_at DESC",
+    )
+    .fetch_all(pool)
+    .await?;
+    let metrics = rows
+        .into_iter()
+        .map(|r| Metric {
+            id: r.get("id"),
+            task_id: r.get("task_id"),
+            metric_type: r.get("metric_type"),
+            value: r.get("value"),
+            unit: r.get("unit"),
+            recorded_at: r.get("recorded_at"),
+        })
+        .collect();
+    Ok(metrics)
+}
+
 pub async fn list_repositories(pool: &SqlitePool) -> Result<Vec<Repository>, sqlx::Error> {
     let rows = sqlx::query("SELECT id, name, path, created_at, updated_at FROM repositories")
         .fetch_all(pool)

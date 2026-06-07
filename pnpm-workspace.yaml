@@ -1,11 +1,22 @@
-# Only the frontend uses pnpm workspaces.
-# The 'packages/' directory contains Rust crates (Cargo.toml), not npm packages.
-# The backend is also a Rust crate.
+# pnpm-workspace.yaml
+# Defines the projects managed by pnpm workspaces.
+# Primarily for JavaScript/TypeScript projects.
+
+# Includes the frontend application and shared packages
 packages:
   - 'apps/ai-engineering-hub/src/frontend'
+  - 'packages/*'
+
+# Notes:
+# The 'packages/' directory contains Rust crates (Cargo.toml), not npm packages.
+# Rust crates are managed using Cargo and the workspace configuration in Cargo.toml.
+# pnpm workspaces do not directly manage Rust dependencies.
+
+# Configuration for build and dependency management within workspaces
+# These settings are specific to pnpm and may not apply to Rust projects.
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  esbuild: set this to true or false
+  '@parcel/watcher': true # Example: set to true or false as needed
+  esbuild: true            # Example: set to true or false as needed
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - 'esbuild'

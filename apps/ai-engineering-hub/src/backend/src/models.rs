@@ -1,3 +1,7 @@
+// Note: These models are kept for documentation/type clarity.
+// The repository layer uses its own structs for DB queries.
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
