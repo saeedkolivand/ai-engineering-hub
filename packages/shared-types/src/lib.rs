@@ -1,85 +1,53 @@
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use chrono::{DateTime, Utc};
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Repository {
-    pub id: Uuid,
-    pub name: String,
-    pub path: String,
-    pub metadata: Option<serde_json::Value>,
-    pub created_at: DateTime<Utc>,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TokenMetrics {
+    pub daily_usage: u64,
+    pub weekly_usage: u64,
+    pub monthly_usage: u64,
+    pub repository_breakdown: Vec<(String, u64)>,
+    pub provider_breakdown: Vec<(String, u64)>,
+    pub agent_breakdown: Vec<(String, u64)>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Session {
-    pub id: Uuid,
-    pub repository_id: Uuid,
-    pub start_time: DateTime<Utc>,
-    pub end_time: Option<DateTime<Utc>>,
-    pub status: SessionStatus,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavingsMetrics {
+    pub rtk_savings: u64,
+    pub graphify_savings: u64,
+    pub codegraph_savings: u64,
+    pub total_savings: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SessionStatus {
-    Active,
-    Completed,
-    Interrupted,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ProductivityMetrics {
+    pub first_pass_success: f64,
+    pub intervention_rate: f64,
+    pub retry_rate: f64,
+    pub task_completion_rate: f64,
+    pub build_success: f64,
+    pub test_success: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Task {
-    pub id: Uuid,
-    pub session_id: Uuid,
-    pub description: String,
-    pub status: TaskStatus,
-    pub started_at: Option<DateTime<Utc>>,
-    pub completed_at: Option<DateTime<Utc>>,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct QualityMetrics {
+    pub build_success: f64,
+    pub test_success: f64,
+    pub lint_success: f64,
+    pub regressions: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TaskStatus {
-    Pending,
-    Running,
-    Success,
-    Failed,
-    Interrupted,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RetrievalMetrics {
+    pub accuracy: f64,
+    pub latency: f64, // in milliseconds
+    pub savings: u64, // cost savings from optimized retrieval
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Agent {
-    pub id: Uuid,
-    pub name: String,
-    pub provider: String,
-    pub model_id: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Intervention {
-    pub id: Uuid,
-    pub task_id: Uuid,
-    pub agent_id: Uuid,
-    pub timestamp: DateTime<Utc>,
-    pub description: String,
-    pub impact: InterventionImpact,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum InterventionImpact {
-    Minor,
-    Major,
-    Critical,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RawEvent {
-    pub id: Uuid,
-    pub timestamp: DateTime<Utc>,
-    pub source: String,
-    pub event_type: String,
-    pub payload: serde_json::Value,
-    pub repository_id: Option<Uuid>,
-    pub session_id: Option<Uuid>,
-    pub task_id: Option<Uuid>,
-    pub agent_id: Option<Uuid>,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AnalyticsMetrics {
+    pub tokens: TokenMetrics,
+    pub savings: SavingsMetrics,
+    pub productivity: ProductivityMetrics,
+    pub quality: QualityMetrics,
+    pub retrieval: RetrievalMetrics,
 }

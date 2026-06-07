@@ -1,0 +1,5 @@
+# Only the frontend uses pnpm workspaces.
+# The 'packages/' directory contains Rust crates (Cargo.toml), not npm packages.
+# The backend is also a Rust crate.
+packages:
+  - 'apps/ai-engineering-hub/src/frontend'

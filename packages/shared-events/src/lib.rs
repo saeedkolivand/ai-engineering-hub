@@ -1,43 +1,27 @@
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use shared_types::{Repository, Session, Task, Agent, Intervention, RawEvent};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventEnvelope<T = serde_json::Value> {
+pub struct ActivityEvent {
     pub id: Uuid,
+    pub repository: String,
+    pub task: String,
+    pub agent: String,
+    pub event_type: String, // "intervention", "metric", etc.
     pub timestamp: DateTime<Utc>,
-    pub version: String,
-    pub r#type: String,
-    pub payload: T,
-    pub metadata: EventMetadata,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct EventMetadata {
-    pub repository_id: Option<Uuid>,
-    pub session_id: Option<Uuid>,
-    pub task_id: Option<Uuid>,
-    pub agent_id: Option<Uuid>,
-    pub source: Option<String>,
-}
-
-// Example type definitions for common events
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TokenUsagePayload {
-    pub provider: String,
-    pub model: String,
-    pub prompt_tokens: u64,
-    pub completion_tokens: u64,
-    pub total_tokens: u64,
-    pub cost: Option<f64>,
+    pub token_impact: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentActionPayload {
-    pub action: String,
-    pub tool_name: String,
-    pub input: serde_json::Value,
-    pub output: serde_json::Value,
-    pub duration_ms: u64,
+#[serde(tag = "type", content = "payload")]
+pub enum HubEvent {
+    #[serde(rename = "tokenUsage")]
+    TokenUsage(serde_json::Value),
+    #[serde(rename = "savings")]
+    Savings(serde_json::Value),
+    #[serde(rename = "buildStatus")]
+    BuildStatus(serde_json::Value),
+    #[serde(rename = "activity")]
+    Activity(ActivityEvent),
 }
