@@ -1,17 +1,18 @@
 [package]
 name = "ai_engineering_backend"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-tokio = { version = "1.35", features = ["full"] }
-axum = "0.7"
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "chrono"] }
+tokio = { version = "1.48", features = ["full"] }
+axum = "0.8.9"
+sqlx = { version = "0.8.6", features = ["sqlite", "runtime-tokio-rustls", "chrono"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tower = "0.4"
-tower-http = { version = "0.5", features = ["trace"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
 shared-types = { path = "../../../packages/shared-types" }
 shared-events = { path = "../../../packages/shared-events" }
