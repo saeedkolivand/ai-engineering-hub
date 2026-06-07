@@ -5,14 +5,21 @@ edition = "2024"
 
 [dependencies]
 tokio = { version = "1.48", features = ["full"] }
-axum = "0.8.9"
+axum = { version = "0.8.9", features = ["ws"] }
 sqlx = { version = "0.8.6", features = ["sqlite", "runtime-tokio-rustls", "chrono"] }
+
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
 tower = "0.5"
 tower-http = { version = "0.6", features = ["trace"] }
+
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 
-shared-types = { path = "../../../packages/shared-types" }
-shared-events = { path = "../../../packages/shared-events" }
+futures = "0.3.31"
+
+shared-types = { path = "../../../../packages/shared-types" }
+shared-events = { path = "../../../../packages/shared-events" }
+uuid = "1.23.2"
+anyhow = "1.0.102"

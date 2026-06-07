@@ -1,8 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from 'shared-ui';
-import { Table } from '@tanstack/react-table';
-import { ColumnDef } from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from '@tanstack/react-table';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/react';
 
 interface TokenMetrics {
@@ -18,26 +17,65 @@ interface ProductivityMetrics {
   value: number;
 }
 
+function DataTable<T extends object>({ data, columns }: { data: T[]; columns: any[] }) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <table>
+      <thead>
+        {table.getHeaderGroups().map(headerGroup => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map(header => (
+              <th key={header.id}>
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </th>
+            ))}
+          </tr>
+        ))}
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map(row => (
+          <tr key={row.id}>
+            {row.getVisibleCells().map(cell => (
+              <td key={cell.id}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+const tokenHelper = createColumnHelper<TokenMetrics>();
+const savingsHelper = createColumnHelper<SavingsMetrics>();
+const productivityHelper = createColumnHelper<ProductivityMetrics>();
+
+const tokenColumns = [
+  tokenHelper.accessor('period', { header: 'Period' }),
+  tokenHelper.accessor('usage', { header: 'Tokens Used' }),
+];
+
+const savingsColumns = [
+  savingsHelper.accessor('provider', { header: 'Provider' }),
+  savingsHelper.accessor('saved_tokens', { header: 'Saved Tokens' }),
+];
+
+const productivityColumns = [
+  productivityHelper.accessor('metric', { header: 'Metric' }),
+  productivityHelper.accessor('value', { header: 'Value' }),
+];
+
 export const AnalyticsPage: React.FC = () => {
   const { data, isLoading, error } = useQuery(['analytics'], async () => {
     const res = await fetch('http://localhost:3000/api/analytics');
     return res.json();
   });
-
-  const tokenColumns: ColumnDef<TokenMetrics, any>[] = React.useMemo(() => [
-    { accessorKey: 'period', header: 'Period' },
-    { accessorKey: 'usage', header: 'Tokens Used' },
-  ], []);
-
-  const savingsColumns: ColumnDef<SavingsMetrics, any>[] = React.useMemo(() => [
-    { accessorKey: 'provider', header: 'Provider' },
-    { accessorKey: 'saved_tokens', header: 'Saved Tokens' },
-  ], []);
-
-  const productivityColumns: ColumnDef<ProductivityMetrics, any>[] = React.useMemo(() => [
-    { accessorKey: 'metric', header: 'Metric' },
-    { accessorKey: 'value', header: 'Value' },
-  ], []);
 
   if (isLoading) return <div>Loading analytics...</div>;
   if (error) return <div>Error loading analytics.</div>;
@@ -58,13 +96,13 @@ export const AnalyticsPage: React.FC = () => {
         </TabList>
         <TabPanels>
           <TabPanel>
-            <Table data={data.tokens ?? []} columns={tokenColumns} />
+            <DataTable data={data?.tokens ?? []} columns={tokenColumns} />
           </TabPanel>
           <TabPanel>
-            <Table data={data.savings ?? []} columns={savingsColumns} />
+            <DataTable data={data?.savings ?? []} columns={savingsColumns} />
           </TabPanel>
           <TabPanel>
-            <Table data={data.productivity ?? []} columns={productivityColumns} />
+            <DataTable data={data?.productivity ?? []} columns={productivityColumns} />
           </TabPanel>
         </TabPanels>
       </TabGroup>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Table } from '@tanstack/react-table';
-import { ColumnDef } from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from '@tanstack/react-table';
 import { Card } from 'shared-ui';
 
 interface Task {
@@ -9,9 +8,20 @@ interface Task {
   session_id: string;
   description: string;
   status: string;
-  started_at?: string;
+  started_at: string;
   completed_at?: string;
 }
+
+const columnHelper = createColumnHelper<Task>();
+
+const columns = [
+  columnHelper.accessor('id', { header: 'ID' }),
+  columnHelper.accessor('session_id', { header: 'Session ID' }),
+  columnHelper.accessor('description', { header: 'Description' }),
+  columnHelper.accessor('status', { header: 'Status' }),
+  columnHelper.accessor('started_at', { header: 'Started' }),
+  columnHelper.accessor('completed_at', { header: 'Completed' }),
+];
 
 export const TaskPage: React.FC = () => {
   const { data, isLoading, error } = useQuery(['tasks'], async () => {
@@ -19,21 +29,43 @@ export const TaskPage: React.FC = () => {
     return res.json();
   });
 
-  const columns = React.useMemo<ColumnDef<Task, any>[]>(() => [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'session_id', header: 'Session ID' },
-    { accessorKey: 'description', header: 'Description' },
-    { accessorKey: 'status', header: 'Status' },
-    { accessorKey: 'started_at', header: 'Started' },
-    { accessorKey: 'completed_at', header: 'Completed' },
-  ], []);
+  const tasks: Task[] = data?.tasks ?? [];
+
+  const table = useReactTable({
+    data: tasks,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   if (isLoading) return <div>Loading tasks...</div>;
   if (error) return <div>Error loading tasks.</div>;
 
   return (
     <Card title="Tasks">
-      <Table data={data.tasks ?? []} columns={columns} />
+      <table>
+        <thead>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map(row => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 };

@@ -3,8 +3,5 @@ members = [
     "apps/ai-engineering-hub/src/backend",
     "packages/shared-types",
     "packages/shared-events",
-    "packages/shared-api-contracts",
-    "packages/shared-sdk",
-    "packages/shared-design-tokens"
 ]
 resolver = "2"

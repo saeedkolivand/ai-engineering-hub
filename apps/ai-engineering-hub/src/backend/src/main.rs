@@ -1,22 +1,18 @@
 use axum::{
-    routing::{get, post},
+    routing::get,
     Router,
     Json,
-    extract::Extension,
     response::IntoResponse,
-    http::StatusCode,
 };
 use std::net::SocketAddr;
-use sqlx::SqlitePool;
-use tracing_subscriber::{fmt, EnvFilter};
-use shared_events::{EventEnvelope, TokenUsagePayload};
+use tokio::net::TcpListener;
+use tracing_subscriber::EnvFilter;
 use serde_json::json;
-use uuid::Uuid;
-use chrono::Utc;
 
-// Import the router module we just created
 mod routes;
-use routes::router as api_router;
+mod ws;
+
+use ws::WsState;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,24 +21,21 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
-    // Create SQLite connection pool
-    let db_url = "sqlite://ai_engineering.db?mode=rwc";
-    let pool = SqlitePool::connect(&db_url).await?;
-    // Run migrations (if any) - placeholder
-    // sqlx::migrate!("./migrations").run(&pool).await?;
+    // Create shared WebSocket state
+    let ws_state = WsState::new();
 
-    // Build the app, mounting the API router under /api
-    let app = Router::new()
+    // Build the app
+    let app = Router::<WsState>::new()
         .route("/", get(root_handler))
-        .nest("/api", api_router())
-        .layer(Extension(pool));
+        .merge(routes::router::<WsState>())
+        .route("/ws/metrics", get(ws::ws_handler))
+        .with_state(ws_state);
 
     // Start server
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::info!("Listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
+    tracing::info!("AI Engineering Hub starting on {}", addr);
+    let listener = TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
     Ok(())
 }
 
