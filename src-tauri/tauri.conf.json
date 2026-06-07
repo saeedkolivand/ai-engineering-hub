@@ -1,0 +1,27 @@
+{
+  "package": {
+    "productName": "AI Engineering Hub",
+    "version": "1.0.0"
+  },
+  "build": {
+    "frontendDist": "../apps/ai-engineering-hub/dist"
+  },
+  "tauri": {
+    "bundle": {
+      "identifier": "com.example.aiengineeringhub",
+      "icon": [
+        "icons/icon.ico",
+        "icons/icon.png"
+      ]
+    },
+    "security": {
+      "csp": "default-src 'self' data: 'unsafe-inline' 'unsafe-eval'"
+    },
+    "window": {
+      "title": "AI Engineering Hub",
+      "width": 1280,
+      "height": 800,
+      "resizable": true
+    }
+  }
+}

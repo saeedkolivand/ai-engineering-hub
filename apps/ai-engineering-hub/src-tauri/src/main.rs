@@ -42,6 +42,24 @@ fn main() {
                 // Store the state for later command access
                 app_handle.manage(state.clone());
 
+                // Start Axum backend in a separate async task
+                let axum_state = state.clone();
+                tauri::async_runtime::spawn(async move {
+                    // Build the router defined in src/ws.rs
+                    let router = ws::build_router(axum_state);
+                    // Run on a random available port (e.g., 0 binds to OS-assigned)
+                    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+                        .await
+                        .expect("Failed to bind Axum listener");
+                    let addr = listener.local_addr().expect("Could not get bound address");
+                    tracing::info!("Axum server listening on {}", addr);
+                    axum::Server::from_tcp(listener)
+                        .unwrap()
+                        .serve(router.into_make_service())
+                        .await
+                        .expect("Axum server failed");
+                });
+
                 // Start background collector
                 let collector_state = state.clone();
                 tauri::async_runtime::spawn(async move {
@@ -62,16 +80,16 @@ fn main() {
             tauri::async_runtime::block_on(fut)
         })
         // Register Tauri commands (converted from Axum handlers)
-    .invoke_handler(tauri::generate_handler![
-        list_repositories,
-        list_sessions,
-        list_tasks,
-        list_agents,
-        list_metrics,
-        analytics,
-        list_settings,
-        update_settings
-    ])
+        .invoke_handler(tauri::generate_handler![
+            list_repositories,
+            list_sessions,
+            list_tasks,
+            list_agents,
+            list_metrics,
+            analytics,
+            list_settings,
+            update_settings
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

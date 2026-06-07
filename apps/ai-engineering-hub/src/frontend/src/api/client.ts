@@ -1,16 +1,6 @@
-const API_BASE = "http://localhost:3000/api";
+import axios from 'axios';
 
-async function get(path: string) {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-export const api = {
-  getHealth: () => get("/health"),
-  getRepositories: () => get("/repositories"),
-  getSessions: () => get("/sessions"),
-  getTasks: () => get("/tasks"),
-  getAgents: () => get("/agents"),
-  getAnalytics: () => get("/analytics"),
-};
+export const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:0', // placeholder – actual port is injected at runtime
+  timeout: 5000,
+});

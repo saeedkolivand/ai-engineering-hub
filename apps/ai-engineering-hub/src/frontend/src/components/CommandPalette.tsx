@@ -1,91 +1,69 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { useHotkeys } from '@reecelucas/react-hotkeys-hook';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Dialog, DialogOverlay, DialogContent } from '@reach/dialog';
-import '@reach/dialog/styles.css';
 
-interface Command {
-  title: string;
-  action: () => void;
-}
-
-const commands: Command[] = [
-  {
-    title: 'Go to Overview',
-    action: () => {
-      navigate('/overview');
-    },
-  },
-  {
-    title: 'Go to Repositories',
-    action: () => {
-      navigate('/repositories');
-    },
-  },
-  {
-    title: 'Go to Sessions',
-    action: () => {
-      navigate('/sessions');
-    },
-  },
-  // Add more commands as needed
-];
-
-let navigate: ReturnType<typeof useNavigate>;
-
-export const CommandPalette: React.FC = () => {
+export function CommandPalette() {
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const filtered = commands.filter((c) =>
-    c.title.toLowerCase().includes(filter.toLowerCase())
-  );
+  const [query, setQuery] = useState('');
+  const navigate = useNavigate();
 
-  // Register global hotkey Ctrl+K
-  useHotkeys('ctrl+k', (e) => {
-    e.preventDefault();
-    setOpen((o) => !o);
-  });
-
-  // Focus input when dialog opens
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 0);
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      setOpen(v => !v);
     }
-  }, [open]);
+  };
 
-  // Close on Escape
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const execute = (path: string) => {
+    navigate({ to: path });
+    setOpen(false);
+    setQuery('');
+  };
+
+  const commands = [
+    { label: 'Repositories', path: '/repositories' },
+    { label: 'Sessions', path: '/sessions' },
+    // add more commands as UI expands
+  ];
+
+  const filtered = commands.filter(c => c.label.toLowerCase().includes(query.toLowerCase()));
 
   if (!open) return null;
 
-  return createPortal(
-    <DialogOverlay isOpen={open} onDismiss={() => setOpen(false)}>
-      <DialogContent aria-label='Command Palette' className='command-palette'>
-        <input
-          ref={inputRef}
-          type='text'
-          placeholder='Type a command…'
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className='command-input'
-        />
-        <ul className='command-list'>
-          {filtered.map((cmd, idx) => (
-            <li key={idx} onClick={() => { cmd.action(); setOpen(false); }}>
-              {cmd.title}
-            </li>
-          ))}
-        </ul>
-      </DialogContent>
-    </DialogOverlay>,
-    document.body
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '20%',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'white',
+      border: '1px solid #ccc',
+      borderRadius: '4px',
+      width: '300px',
+      zIndex: 1000,
+      padding: '0.5rem'
+    }}>
+      <input
+        autoFocus
+        placeholder="Command…"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }}
+      />
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: '200px', overflowY: 'auto' }}>
+        {filtered.map(c => (
+          <li key={c.path}
+              style={{ padding: '0.3rem', cursor: 'pointer' }}
+              onClick={() => execute(c.path)}>
+            {c.label}
+          </li>
+        ))}
+        {filtered.length === 0 && <li style={{ padding: '0.3rem' }}>No matches</li>}
+      </ul>
+    </div>
   );
-};
+}

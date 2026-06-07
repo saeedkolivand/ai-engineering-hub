@@ -16,7 +16,8 @@ packages:
 # These settings are specific to pnpm and may not apply to Rust projects.
 allowBuilds:
   '@parcel/watcher': true # Example: set to true or false as needed
-  esbuild: true            # Example: set to true or false as needed
+  esbuild: true # Example: set to true or false as needed
+  unrs-resolver: set this to true or false
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - 'esbuild'

@@ -1,8 +1,10 @@
 import React from 'react';
 
-export const Overview = () => (
-  <section>
-    <h1>Overview</h1>
-    <p>Dashboard overview will be displayed here.</p>
-  </section>
-);
+export function Overview() {
+  return (
+    <div>
+      <h2>Overview</h2>
+      <p>Welcome to the AI Engineering Hub. Use the navigation to explore repositories, sessions, tasks, agents, analytics, and more.</p>
+    </div>
+  );
+}

@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install front‑end dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri backend
+        run: cargo build --release
+
+      - name: Build Front‑end
+        run: pnpm --filter ai-engineering-hub... run build
+
+      - name: Run Rust unit tests
+        run: cargo test --workspace
+
+      - name: Run Front‑end tests
+        run: pnpm --filter ai-engineering-hub... run test
+
+      - name: Package Stream Deck plugin
+        run: |
+          cd apps/streamdeck-plugin
+          ./build.sh
