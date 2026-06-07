@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::db::AppState;
 use crate::repository::*;
 
-pub fn router(state: Arc<AppState>) -> Router {
+pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/api/health", get(health_handler))
         .route("/api/repositories", get(list_repositories_handler))
@@ -14,7 +14,6 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/api/tasks", get(list_tasks_handler))
         .route("/api/agents", get(list_agents_handler))
         .route("/api/analytics", get(get_analytics_handler))
-        .with_state(state)
 }
 
 async fn health_handler(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {

@@ -7,7 +7,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
-use serde_json::json;
+use serde_json::{json, Value};
+use tokio::sync::broadcast;
 
 mod routes;
 mod ws;
@@ -31,13 +32,18 @@ async fn main() -> anyhow::Result<()> {
     sqlx::migrate!("./migrations").run(&pool).await?;
     tracing::info!("Database migrations applied successfully");
 
+    // Create broadcast channel for WebSocket events
+    let (tx, _) = broadcast::channel::<Value>(128);
+
     // Create shared state
-    let app_state = Arc::new(AppState { pool });
+    let app_state = Arc::new(AppState { pool, tx });
 
     // Build the app
     let app = Router::new()
         .route("/", get(root_handler))
-        .merge(routes::router(app_state.clone()));
+        .merge(routes::router())
+        .route("/ws/metrics", get(ws::ws_handler))
+        .with_state(app_state);
 
     // Start server
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));

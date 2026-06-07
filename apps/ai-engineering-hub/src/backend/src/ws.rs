@@ -1,25 +1,14 @@
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
+    extract::State,
     response::IntoResponse,
 };
 use futures::{SinkExt, StreamExt};
 use serde_json::{json, Value};
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::broadcast;
+use crate::db::AppState;
 use tracing::info;
-
-/// Shared state for WebSocket broadcasting
-#[derive(Clone)]
-pub struct WsState {
-    pub tx: broadcast::Sender<Value>,
-}
-
-impl WsState {
-    pub fn new() -> Self {
-        let (tx, _) = broadcast::channel(128);
-        Self { tx }
-    }
-}
 
 /// Generate simulated per-agent token metrics
 fn generate_agent_metrics() -> Value {
@@ -37,44 +26,42 @@ fn generate_agent_metrics() -> Value {
     })
 }
 
-/// WebSocket upgrade handler - uses axum 0.8 state extractor
+/// WebSocket upgrade handler
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
-    state: axum::extract::State<WsState>,
+    State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     info!("WebSocket upgrade: /ws/metrics");
-    ws.on_upgrade(move |socket| handle_socket(socket, state.0.clone()))
+    let tx = state.tx.clone();
+    ws.on_upgrade(move |socket| handle_socket(socket, tx))
 }
 
 /// Handle an individual WebSocket connection
-async fn handle_socket(socket: WebSocket, state: WsState) {
+async fn handle_socket(socket: WebSocket, tx: tokio::sync::broadcast::Sender<Value>) {
     let (mut sender, mut receiver) = socket.split();
-    let mut rx = state.tx.subscribe();
+    let mut rx = tx.subscribe();
     let mut interval = tokio::time::interval(Duration::from_secs(2));
 
     // Send initial metrics
     let initial = generate_agent_metrics();
-    let _ = state.tx.send(initial);
+    let _ = tx.send(initial);
 
     loop {
         tokio::select! {
-            // Broadcast received from server (future real metrics)
             Ok(msg) = rx.recv() => {
                 let text = serde_json::to_string(&msg).unwrap_or_default();
                 if sender.send(Message::Text(text.into())).await.is_err() {
                     break;
                 }
             }
-            // Periodic simulated metrics every 2 seconds
             _ = interval.tick() => {
                 let metrics = generate_agent_metrics();
-                let _ = state.tx.send(metrics.clone());
+                let _ = tx.send(metrics.clone());
                 let text = serde_json::to_string(&metrics).unwrap_or_default();
                 if sender.send(Message::Text(text.into())).await.is_err() {
                     break;
                 }
             }
-            // Client disconnected
             msg = receiver.next() => {
                 if msg.is_none() || msg.and_then(|m| m.ok()).is_none() {
                     break;
