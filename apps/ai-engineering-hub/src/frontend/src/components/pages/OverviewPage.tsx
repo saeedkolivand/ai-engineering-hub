@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card } from '@/components/ui/Card';
+import { Card } from 'shared-ui';
 
 export const OverviewPage: React.FC = () => {
   // Placeholder query – replace with real API call

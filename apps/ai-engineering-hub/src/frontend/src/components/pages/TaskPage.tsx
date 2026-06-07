@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Table } from '@tanstack/react-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { Card } from '@/components/ui/Card';
+import { Card } from 'shared-ui';
 
 interface Task {
   id: string;
