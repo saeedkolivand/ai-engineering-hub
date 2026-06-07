@@ -1,8 +1,9 @@
-import { Route } from '@tanstack/react-router';
+import { createRoute } from '@tanstack/react-router';
 import { OverviewPage } from '@/components/pages/OverviewPage';
+import { rootRoute } from './root';
 
-export const overviewRoute = new Route({
-  getParentRoute: () => import('./root').then(r => r.rootRoute),
+export const overviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
   path: '/overview',
   component: OverviewPage,
 });

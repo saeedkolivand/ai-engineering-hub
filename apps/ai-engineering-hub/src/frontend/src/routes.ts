@@ -8,13 +8,14 @@ import { analyticsRoute } from './routes/analytics';
 import { activityRoute } from './routes/activity';
 import { settingsRoute } from './routes/settings';
 
-export const routes = rootRoute.addChildren([
+// Build the route tree
+export const routeTree = rootRoute.addChildren([
   overviewRoute,
   repositoryRoute,
   sessionRoute,
   taskRoute,
   agentRoute,
-    analyticsRoute,
+  analyticsRoute,
   activityRoute,
   settingsRoute,
 ]);

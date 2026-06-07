@@ -1,8 +1,9 @@
-import { Route } from '@tanstack/react-router';
+import { createRoute } from '@tanstack/react-router';
 import { AnalyticsPage } from '@/components/pages/AnalyticsPage';
+import { rootRoute } from './root';
 
-export const analyticsRoute = new Route({
-  getParentRoute: () => import('./root').then(r => r.rootRoute),
+export const analyticsRoute = createRoute({
+  getParentRoute: () => rootRoute,
   path: '/analytics',
   component: AnalyticsPage,
 });

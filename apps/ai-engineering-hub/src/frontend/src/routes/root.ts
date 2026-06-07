@@ -1,8 +1,6 @@
-import { Route } from '@tanstack/react-router';
+import { createRootRoute } from '@tanstack/react-router';
 import { ThreePanelLayout } from '@/components/layout/ThreePanelLayout';
 
-export const rootRoute = new Route({
-  getParentRoute: () => null,
-  path: '/',
+export const rootRoute = createRootRoute({
   component: ThreePanelLayout,
 });

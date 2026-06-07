@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { routes } from './routes';
+import { routeTree } from './routes';
 
 // Initialize the router
 const router = createRouter({
-  routeTree: routes,
+  routeTree,
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

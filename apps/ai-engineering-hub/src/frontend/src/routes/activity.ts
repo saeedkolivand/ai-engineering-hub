@@ -1,8 +1,9 @@
-import { Route } from '@tanstack/react-router';
+import { createRoute } from '@tanstack/react-router';
 import { ActivityPage } from '@/components/pages/ActivityPage';
+import { rootRoute } from './root';
 
-export const activityRoute = new Route({
-  getParentRoute: () => import('./root').then(r => r.rootRoute),
+export const activityRoute = createRoute({
+  getParentRoute: () => rootRoute,
   path: '/activity',
   component: ActivityPage,
 });
