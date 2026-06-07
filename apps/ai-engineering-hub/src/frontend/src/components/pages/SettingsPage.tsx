@@ -1,8 +1,8 @@
-import React from 'react';
-import { invoke } from '@tauri-apps/api/tauri';
+import React, { useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { Card } from 'shared-ui';
 import { useForm } from '@tanstack/react-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 
 interface Settings {
   theme: 'light' | 'dark';
@@ -13,18 +13,12 @@ interface Settings {
 export const SettingsPage: React.FC = () => {
   const queryClient = useQueryClient();
 
-  const { data: current } = useForm<Settings>({
-    defaultValues: async () => ({
-      theme: 'light',
-      apiEndpoint: '',
-      enableTelemetry: false,
-    }),
-  }).useQuery({
+  const { data: current, isLoading } = useQuery<Settings>({
     queryKey: ['settings'],
-      queryFn: async () => {
-        const res = await invoke('list_settings');
-        return res;
-      },
+    queryFn: async () => {
+      const res = await invoke('list_settings');
+      return res as Settings;
+    },
   });
 
   const mutation = useMutation({
@@ -36,21 +30,36 @@ export const SettingsPage: React.FC = () => {
   });
 
   const form = useForm<Settings>({
-    defaultValues: async () => current ?? { theme: 'light', apiEndpoint: '', enableTelemetry: false },
+    defaultValues: current ?? { theme: 'light', apiEndpoint: '', enableTelemetry: false },
     onSubmit: async ({ value }) => {
       await mutation.mutateAsync(value);
     },
   });
 
+  useEffect(() => {
+    if (current) {
+      form.reset(current);
+    }
+  }, [current, form]);
+
+  if (isLoading) {
+    return <div className="p-4">Loading settings...</div>;
+  }
+
   return (
     <Card title="Settings">
-      <form.Provider onSubmit={form.handleSubmit}>
+      <form onSubmit={form.handleSubmit}>
         <div className="space-y-4">
           <form.Field name="theme">
             {(field) => (
               <div>
                 <label className="block font-medium">Theme</label>
-                <select {...field.props} className="border rounded p-1 w-full">
+                <select
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value as 'light' | 'dark')}
+                  className="border rounded p-1 w-full"
+                >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
                 </select>
@@ -63,7 +72,9 @@ export const SettingsPage: React.FC = () => {
               <div>
                 <label className="block font-medium">API Endpoint</label>
                 <input
-                  {...field.props}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
                   type="url"
                   placeholder="http://localhost:3000"
                   className="border rounded p-1 w-full"
@@ -75,7 +86,13 @@ export const SettingsPage: React.FC = () => {
           <form.Field name="enableTelemetry">
             {(field) => (
               <div className="flex items-center">
-                <input type="checkbox" {...field.props} className="mr-2" />
+                <input
+                  type="checkbox"
+                  checked={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.checked)}
+                  className="mr-2"
+                />
                 <label className="font-medium">Enable Telemetry (optional)</label>
               </div>
             )}
@@ -89,7 +106,7 @@ export const SettingsPage: React.FC = () => {
             {mutation.isPending ? 'Saving…' : 'Save Settings'}
           </button>
         </div>
-      </form.Provider>
+      </form>
     </Card>
   );
 };
