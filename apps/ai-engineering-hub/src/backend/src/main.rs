@@ -1,18 +1,21 @@
 use axum::{
-    routing::get,
-    Router,
-    Json,
     response::IntoResponse,
+    routing::get,
+    Json, Router,
 };
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
 use serde_json::json;
 
 mod routes;
 mod ws;
+mod models;
+mod repository;
+pub mod db;
 
-use ws::WsState;
+use db::AppState;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -21,15 +24,20 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
-    // Create shared WebSocket state
-    let ws_state = WsState::new();
+    // Initialize database
+    let pool = db::init_db().await?;
+
+    // Run migrations
+    sqlx::migrate!("./migrations").run(&pool).await?;
+    tracing::info!("Database migrations applied successfully");
+
+    // Create shared state
+    let app_state = Arc::new(AppState { pool });
 
     // Build the app
-    let app = Router::<WsState>::new()
+    let app = Router::new()
         .route("/", get(root_handler))
-        .merge(routes::router::<WsState>())
-        .route("/ws/metrics", get(ws::ws_handler))
-        .with_state(ws_state);
+        .merge(routes::router(app_state.clone()));
 
     // Start server
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
