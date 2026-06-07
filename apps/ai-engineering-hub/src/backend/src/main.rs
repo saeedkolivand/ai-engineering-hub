@@ -17,6 +17,7 @@ mod repository;
 pub mod db;
 
 use db::AppState;
+mod collector;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -37,11 +38,17 @@ async fn main() -> anyhow::Result<()> {
 
     // Create shared state
     let app_state = Arc::new(AppState { pool, tx });
+    // Start metrics collector watcher
+    let metrics_dir = std::env::current_dir()?.join("metrics");
+    let _collector_handle = tokio::spawn(async move {
+        let _ = collector::start_watcher(app_state.clone(), metrics_dir).await;
+    });
 
     // Build the app
     let app = Router::new()
         .route("/", get(root_handler))
         .merge(routes::router())
+        .merge(routes::api_router())
         .route("/ws/metrics", get(ws::ws_handler))
         .with_state(app_state);
 

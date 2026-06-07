@@ -1,137 +1,153 @@
 use sqlx::SqlitePool;
+use serde::{Serialize, Deserialize};
 
-use crate::models::{ActivityEvent, Agent, Metric, Repository, Session, Task};
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Repository {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
 
-// ── Repository ──────────────────────────────────────────────
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Session {
+    pub id: String,
+    pub repository_id: String,
+    pub status: String,
+    pub started_at: String,
+    pub ended_at: Option<String>,
+    pub created_at: String,
+}
 
-pub async fn list_repositories(pool: &SqlitePool) -> anyhow::Result<Vec<Repository>> {
-    let rows = sqlx::query_as::<_, Repository>(
-        "SELECT id, name, path, created_at, updated_at FROM repositories ORDER BY updated_at DESC"
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Task {
+    pub id: String,
+    pub session_id: String,
+    pub name: String,
+    pub status: String,
+    pub tokens_used: Option<i64>,
+    pub tokens_saved: Option<i64>,
+    pub interventions: Option<i64>,
+    pub retries: Option<i64>,
+    pub first_pass_success: Option<i64>,
+    pub created_at: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Agent {
+    pub id: String,
+    pub name: String,
+    pub provider: String,
+    pub model_id: Option<String>,
+    pub created_at: String,
+}
+
+use sqlx::Row;
+
+// Implementations – fetch data from SQLite tables.
+pub async fn list_repositories(pool: &SqlitePool) -> Result<Vec<Repository>, sqlx::Error> {
+    let rows = sqlx::query("SELECT id, name, path, created_at, updated_at FROM repositories")
+        .fetch_all(pool)
+        .await?;
+    let repos = rows
+        .into_iter()
+        .map(|r| Repository {
+            id: r.get("id"),
+            name: r.get("name"),
+            path: r.get("path"),
+            created_at: r.get("created_at"),
+            updated_at: r.get("updated_at"),
+        })
+        .collect();
+    Ok(repos)
+}
+
+pub async fn list_sessions(pool: &SqlitePool) -> Result<Vec<Session>, sqlx::Error> {
+    let rows = sqlx::query(
+        "SELECT id, repository_id, status, started_at, ended_at, created_at FROM sessions",
     )
     .fetch_all(pool)
     .await?;
-    Ok(rows)
+    let sessions = rows
+        .into_iter()
+        .map(|r| Session {
+            id: r.get("id"),
+            repository_id: r.get("repository_id"),
+            status: r.get("status"),
+            started_at: r.get("started_at"),
+            ended_at: r.get("ended_at"),
+            created_at: r.get("created_at"),
+        })
+        .collect();
+    Ok(sessions)
 }
 
-pub async fn create_repository(pool: &SqlitePool, id: &str, name: &str, path: &str) -> anyhow::Result<Repository> {
-    let repo = sqlx::query_as::<_, Repository>(
-        "INSERT INTO repositories (id, name, path) VALUES (?, ?, ?) RETURNING *"
-    )
-    .bind(id)
-    .bind(name)
-    .bind(path)
-    .fetch_one(pool)
-    .await?;
-    Ok(repo)
-}
-
-// ── Session ─────────────────────────────────────────────────
-
-pub async fn list_sessions(pool: &SqlitePool) -> anyhow::Result<Vec<Session>> {
-    let rows = sqlx::query_as::<_, Session>(
-        "SELECT id, repository_id, status, started_at, ended_at, created_at FROM sessions ORDER BY started_at DESC"
+pub async fn list_tasks(pool: &SqlitePool) -> Result<Vec<Task>, sqlx::Error> {
+    let rows = sqlx::query(
+        "SELECT id, session_id, name, status, tokens_used, tokens_saved, interventions, retries, first_pass_success, created_at FROM tasks",
     )
     .fetch_all(pool)
     .await?;
-    Ok(rows)
+    let tasks = rows
+        .into_iter()
+        .map(|r| Task {
+            id: r.get("id"),
+            session_id: r.get("session_id"),
+            name: r.get("name"),
+            status: r.get("status"),
+            tokens_used: r.get("tokens_used"),
+            tokens_saved: r.get("tokens_saved"),
+            interventions: r.get("interventions"),
+            retries: r.get("retries"),
+            first_pass_success: r.get("first_pass_success"),
+            created_at: r.get("created_at"),
+        })
+        .collect();
+    Ok(tasks)
 }
 
-pub async fn list_sessions_by_repository(pool: &SqlitePool, repository_id: &str) -> anyhow::Result<Vec<Session>> {
-    let rows = sqlx::query_as::<_, Session>(
-        "SELECT id, repository_id, status, started_at, ended_at, created_at FROM sessions WHERE repository_id = ? ORDER BY started_at DESC"
-    )
-    .bind(repository_id)
-    .fetch_all(pool)
-    .await?;
-    Ok(rows)
-}
-
-// ── Agent ───────────────────────────────────────────────────
-
-pub async fn list_agents(pool: &SqlitePool) -> anyhow::Result<Vec<Agent>> {
-    let rows = sqlx::query_as::<_, Agent>(
-        "SELECT id, name, provider, model_id, created_at FROM agents ORDER BY name ASC"
-    )
-    .fetch_all(pool)
-    .await?;
-    Ok(rows)
-}
-
-// ── Task ────────────────────────────────────────────────────
-
-pub async fn list_tasks(pool: &SqlitePool) -> anyhow::Result<Vec<Task>> {
-    let rows = sqlx::query_as::<_, Task>(
-        "SELECT id, session_id, name, agent_id, status, started_at, completed_at, tokens_used, tokens_saved, interventions, retries, first_pass_success, created_at FROM tasks ORDER BY created_at DESC"
+pub async fn list_agents(pool: &SqlitePool) -> Result<Vec<Agent>, sqlx::Error> {
+    let rows = sqlx::query(
+        "SELECT id, name, provider, model_id, created_at FROM agents",
     )
     .fetch_all(pool)
     .await?;
-    Ok(rows)
+    let agents = rows
+        .into_iter()
+        .map(|r| Agent {
+            id: r.get("id"),
+            name: r.get("name"),
+            provider: r.get("provider"),
+            model_id: r.get("model_id"),
+            created_at: r.get("created_at"),
+        })
+        .collect();
+    Ok(agents)
 }
 
-pub async fn list_tasks_by_session(pool: &SqlitePool, session_id: &str) -> anyhow::Result<Vec<Task>> {
-    let rows = sqlx::query_as::<_, Task>(
-        "SELECT id, session_id, name, agent_id, status, started_at, completed_at, tokens_used, tokens_saved, interventions, retries, first_pass_success, created_at FROM tasks WHERE session_id = ? ORDER BY created_at ASC"
-    )
-    .bind(session_id)
-    .fetch_all(pool)
-    .await?;
-    Ok(rows)
+// Analytics – aggregate token usage and savings.
+pub async fn get_token_usage_by_day(pool: &SqlitePool) -> Result<i64, sqlx::Error> {
+    let row = sqlx::query("SELECT COALESCE(SUM(tokens_used), 0) as total FROM metrics WHERE date(created_at) = date('now')")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.get::<i64, _>("total"))
 }
-
-// ── Metric ──────────────────────────────────────────────────
-
-pub async fn list_metrics(pool: &SqlitePool) -> anyhow::Result<Vec<Metric>> {
-    let rows = sqlx::query_as::<_, Metric>(
-        "SELECT id, task_id, metric_type, value, unit, recorded_at FROM metrics ORDER BY recorded_at DESC"
-    )
-    .fetch_all(pool)
-    .await?;
-    Ok(rows)
+pub async fn get_token_usage_by_week(pool: &SqlitePool) -> Result<i64, sqlx::Error> {
+    let row = sqlx::query("SELECT COALESCE(SUM(tokens_used), 0) as total FROM metrics WHERE strftime('%W', created_at) = strftime('%W','now')")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.get::<i64, _>("total"))
 }
-
-pub async fn get_token_usage_by_day(pool: &SqlitePool) -> anyhow::Result<i64> {
-    let row: (i64,) = sqlx::query_as(
-        "SELECT COALESCE(SUM(tokens_used), 0) FROM tasks WHERE date(started_at) = date('now')"
-    )
-    .fetch_one(pool)
-    .await?;
-    Ok(row.0)
+pub async fn get_token_usage_by_month(pool: &SqlitePool) -> Result<i64, sqlx::Error> {
+    let row = sqlx::query("SELECT COALESCE(SUM(tokens_used), 0) as total FROM metrics WHERE strftime('%m', created_at) = strftime('%m','now')")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.get::<i64, _>("total"))
 }
-
-pub async fn get_token_usage_by_week(pool: &SqlitePool) -> anyhow::Result<i64> {
-    let row: (i64,) = sqlx::query_as(
-        "SELECT COALESCE(SUM(tokens_used), 0) FROM tasks WHERE started_at >= datetime('now', '-7 days')"
-    )
-    .fetch_one(pool)
-    .await?;
-    Ok(row.0)
-}
-
-pub async fn get_token_usage_by_month(pool: &SqlitePool) -> anyhow::Result<i64> {
-    let row: (i64,) = sqlx::query_as(
-        "SELECT COALESCE(SUM(tokens_used), 0) FROM tasks WHERE started_at >= datetime('now', '-30 days')"
-    )
-    .fetch_one(pool)
-    .await?;
-    Ok(row.0)
-}
-
-pub async fn get_total_savings(pool: &SqlitePool) -> anyhow::Result<i64> {
-    let row: (i64,) = sqlx::query_as(
-        "SELECT COALESCE(SUM(tokens_saved), 0) FROM tasks"
-    )
-    .fetch_one(pool)
-    .await?;
-    Ok(row.0)
-}
-
-// ── Activity Events ─────────────────────────────────────────
-
-pub async fn list_activity_events(pool: &SqlitePool) -> anyhow::Result<Vec<ActivityEvent>> {
-    let rows = sqlx::query_as::<_, ActivityEvent>(
-        "SELECT id, repository_id, session_id, task_id, agent_id, event_type, description, token_impact, metadata, timestamp, created_at FROM activity_events ORDER BY timestamp DESC LIMIT 100"
-    )
-    .fetch_all(pool)
-    .await?;
-    Ok(rows)
+pub async fn get_total_savings(pool: &SqlitePool) -> Result<i64, sqlx::Error> {
+    let row = sqlx::query("SELECT COALESCE(SUM(tokens_saved), 0) as total FROM metrics")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.get::<i64, _>("total"))
 }
