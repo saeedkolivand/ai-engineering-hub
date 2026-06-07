@@ -14,6 +14,10 @@ use serde_json::json;
 use uuid::Uuid;
 use chrono::Utc;
 
+// Import the router module we just created
+mod routes;
+use routes::router as api_router;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
@@ -27,11 +31,10 @@ async fn main() -> anyhow::Result<()> {
     // Run migrations (if any) - placeholder
     // sqlx::migrate!("./migrations").run(&pool).await?;
 
-    // Build the app
+    // Build the app, mounting the API router under /api
     let app = Router::new()
         .route("/", get(root_handler))
-        .route("/api/health", get(health_handler))
-        .route("/api/ingest/log", post(ingest_log_handler))
+        .nest("/api", api_router())
         .layer(Extension(pool));
 
     // Start server
@@ -44,32 +47,5 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn root_handler() -> impl IntoResponse {
-    Json(json!({ "message": "AI Engineering Hub Backend"}))
-}
-
-async fn health_handler() -> impl IntoResponse {
-    (StatusCode::OK, "OK")
-}
-
-// Simple ingestion endpoint that wraps incoming payload into an EventEnvelope
-async fn ingest_log_handler(
-    Extension(pool): Extension<SqlitePool>,
-    Json(payload): Json<serde_json::Value>,
-) -> impl IntoResponse {
-    // In a real implementation you would parse and store the event.
-    // Here we just wrap it and return an ID.
-    let envelope = EventEnvelope {
-        id: Uuid::new_v4(),
-        timestamp: Utc::now(),
-        version: "1.0.0".to_string(),
-        r#type: "raw_log".to_string(),
-        payload,
-        metadata: Default::default(),
-    };
-    // Placeholder: store event in DB (omitted)
-    let resp = json!({
-        "event_id": envelope.id,
-        "status": "queued"
-    });
-    (StatusCode::ACCEPTED, Json(resp))
+    Json(json!({ "message": "AI Engineering Hub Backend" }))
 }
