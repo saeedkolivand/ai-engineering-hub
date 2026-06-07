@@ -3,3 +3,9 @@
 # The backend is also a Rust crate.
 packages:
   - 'apps/ai-engineering-hub/src/frontend'
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+  esbuild: set this to true or false
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - 'esbuild'
