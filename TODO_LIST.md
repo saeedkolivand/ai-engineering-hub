@@ -5,8 +5,8 @@
 - [x] Phase 2: Real backend API from DB (endpoints for repositories, sessions, tasks, agents, analytics)
 - [x] Phase 3: Metrics collector engine
 - [x] Phase 4: Frontend data display with TanStack Table (pages with sorting, filtering, virtualized tables)
-- [ ] Phase 5: UX & navigation (command palette, search, drill-down)
-- [ ] Phase 6: Tauri desktop integration
-- [ ] Phase 7: Stream Deck plugin
+- [x] Phase 5: UX & navigation (command palette, search, drill‑down)
+- [x] Phase 6: Tauri desktop integration (initial scaffolding)
+- [ ] Phase 7: Stream Deck plugin (basic scaffold with placeholder API)
 - [ ] Phase 8: Testing
 - [ ] Phase 9: Documentation
