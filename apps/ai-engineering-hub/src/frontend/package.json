@@ -9,9 +9,9 @@
       "esbuild"
     ]
   },
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
+    "scripts": {
+      "dev": "vite dev --open",
+      "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

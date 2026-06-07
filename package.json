@@ -2,32 +2,35 @@
   "name": "ai-engineering-hub",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.0.9",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "test": "turbo test",
+    "lint": "turbo lint",
     "preview": "vite preview",
-    "test": "vitest run",
     "benchmark:start": "bash ./benchmark/startup.sh",
     "benchmark:list": "ts-node ./benchmark/list_performance.ts"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.101.0",
-    "@tanstack/react-table": "^8.21.3",
-    "@tanstack/react-router": "^1.170.15",
-    "@tanstack/react-virtual": "^3.14.2",
     "@tanstack/react-form": "^1.33.0",
-    "@tanstack/store": "^0.11.0",
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-router": "^1.170.15",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.14.2",
     "@tanstack/start": "^1.120.20",
+    "@tanstack/store": "^0.11.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^6.0.2",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.9.16",
     "typescript": "^6.0.3",
     "vite": "^8.0.16",
-    "@vitejs/plugin-react": "^6.0.2",
-    "vitest": "^4.1.8",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/jest-dom": "^6.9.1",
-    "ts-node": "^10.9.2"
+    "vitest": "^4.1.8"
   }
 }
