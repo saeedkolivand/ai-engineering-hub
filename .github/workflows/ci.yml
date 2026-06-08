@@ -43,12 +43,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Generate route tree
-        run: pnpm --filter ai-engineering-hub-frontend exec tsr generate
+      - name: Build frontend (generates route tree)
+        run: pnpm --filter ai-engineering-hub-frontend build
       - name: Typecheck frontend
         run: pnpm --filter ai-engineering-hub-frontend exec tsc --noEmit
-      - name: Build frontend
-        run: pnpm --filter ai-engineering-hub-frontend build
       - name: Typecheck plugin
         run: pnpm --filter ai-engineering-monitor-plugin exec tsc --noEmit
       - name: Build plugin bundle
