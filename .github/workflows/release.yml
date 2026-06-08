@@ -184,3 +184,49 @@ jobs:
           # Updater manifest (fetched by the app's auto-updater)
           gh release upload "$TAG" latest.json \
             --repo "${{ github.repository }}" --clobber
+
+  # ── 5. Update Homebrew cask in-repo ────────────────────────────────────────
+  update-cask:
+    name: Update Homebrew cask
+    needs: [version, publish]
+    if: needs.version.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Compute SHA256 and update cask
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          DMG=$(find artifacts -name "*aarch64.dmg" | head -1)
+          if [ -z "$DMG" ]; then
+            echo "No arm64 DMG found in artifacts — skipping cask update"
+            exit 0
+          fi
+          SHA256=$(sha256sum "$DMG" | awk '{print $1}')
+          echo "DMG: $DMG"
+          echo "SHA256: $SHA256"
+          node scripts/update-homebrew-cask.mjs "$VERSION" "$SHA256"
+      - name: Commit and push cask update
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git config user.name  "$GIT_AUTHOR_NAME"
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git add Casks/ai-engineering-hub.rb
+          if git diff --cached --quiet; then
+            echo "Cask already up to date — nothing to commit"
+          else
+            git commit -m "chore(brew): update cask to v${{ needs.version.outputs.version }} [skip ci]"
+            git push origin main
+          fi

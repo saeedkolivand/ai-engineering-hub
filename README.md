@@ -65,12 +65,19 @@ toolchain required.
 **Homebrew (recommended)**
 
 ```bash
-brew tap saeedkolivand/homebrew-tap
+brew tap saeedkolivand/ai-engineering-hub https://github.com/saeedkolivand/ai-engineering-hub
 brew install --cask ai-engineering-hub
 ```
 
-Updates are managed by Homebrew (`brew upgrade ai-engineering-hub`) and by the app's built-in
-auto-updater.
+To update:
+
+```bash
+brew update && brew upgrade --cask ai-engineering-hub
+```
+
+The cask lives in [`Casks/ai-engineering-hub.rb`](Casks/ai-engineering-hub.rb) in this repo and
+is updated automatically after every release. The app also notifies you in-app when an update is
+available.
 
 **Direct download**
 
