@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "_comment": "Primary-owner routing for the Stop review-gate. First matching primary glob wins (order matters). Secondaries added when their globs match AND room under `cap`. Repo-relative globs matched against `git diff --name-only`.",
+  "cap": 3,
+  "primary": [
+    { "glob": "**/*.test.*", "owner": "testing-reviewer" },
+    { "glob": "**/*.spec.*", "owner": "testing-reviewer" },
+    { "glob": "**/tests/**", "owner": "testing-reviewer" },
+    { "glob": "**/e2e/**", "owner": "testing-reviewer" },
+    { "glob": "apps/ai-engineering-hub/core/src/ingestion/**", "owner": "ingestion-source-expert" },
+    { "glob": "apps/ai-engineering-hub/core/src/sources.rs", "owner": "ingestion-source-expert" },
+    { "glob": "apps/ai-engineering-hub/core/src/analytics.rs", "owner": "analytics-engine-expert" },
+    { "glob": "apps/ai-engineering-hub/core/src/analytics/**", "owner": "analytics-engine-expert" },
+    { "glob": "apps/ai-engineering-hub/core/src/intelligence.rs", "owner": "analytics-engine-expert" },
+    { "glob": "apps/ai-engineering-hub/core/src/intelligence/**", "owner": "analytics-engine-expert" },
+    { "glob": "apps/streamdeck-plugin/**", "owner": "streamdeck-plugin-expert" },
+    { "glob": "packages/shared-types/**", "owner": "contracts-architect" },
+    { "glob": "packages/shared-events/**", "owner": "contracts-architect" },
+    { "glob": "packages/shared-api-contracts/**", "owner": "contracts-architect" },
+    { "glob": "packages/shared-sdk/**", "owner": "contracts-architect" },
+    { "glob": "packages/shared-design-tokens/**", "owner": "design-system-steward" },
+    { "glob": "apps/ai-engineering-hub/src/frontend/**", "owner": "tanstack-frontend-expert" },
+    { "glob": "apps/ai-engineering-hub/core/src/**", "owner": "rust-backend-architect" },
+    { "glob": "apps/ai-engineering-hub/src-tauri/**", "owner": "rust-backend-architect" },
+    { "glob": "docs/**", "owner": "project-steward" },
+    { "glob": "design/**", "owner": "project-steward" }
+  ],
+  "secondary": [
+    {
+      "owner": "tauri-security-reviewer",
+      "globs": [
+        "apps/ai-engineering-hub/src-tauri/capabilities/**",
+        "apps/ai-engineering-hub/src-tauri/tauri.conf.json",
+        "apps/ai-engineering-hub/core/src/server.rs",
+        "**/deny.toml",
+        "**/Cargo.toml",
+        "**/Cargo.lock",
+        "**/package.json",
+        "**/pnpm-lock.yaml"
+      ]
+    },
+    {
+      "owner": "performance-profiler",
+      "globs": [
+        "apps/ai-engineering-hub/core/src/ingestion/**",
+        "apps/ai-engineering-hub/core/src/analytics.rs",
+        "apps/ai-engineering-hub/core/src/analytics/**",
+        "apps/ai-engineering-hub/core/src/intelligence.rs",
+        "apps/ai-engineering-hub/core/src/intelligence/**",
+        "apps/ai-engineering-hub/core/src/server.rs",
+        "apps/ai-engineering-hub/src/frontend/src/routes/**"
+      ]
+    }
+  ],
+  "advisory": {
+    "docs_stale": [
+      "packages/shared-api-contracts/**",
+      "packages/shared-events/**",
+      "packages/shared-types/**",
+      "apps/ai-engineering-hub/core/src/server.rs",
+      "apps/ai-engineering-hub/core/src/ingestion/**"
+    ],
+    "release": [
+      ".releaserc*",
+      "commitlint.config*",
+      ".github/workflows/**"
+    ],
+    "contracts_parity": [
+      "packages/shared-types/**",
+      "packages/shared-events/**",
+      "packages/shared-api-contracts/**"
+    ]
+  },
+  "lessons_domains": {
+    "ingestion": [
+      "apps/ai-engineering-hub/core/src/ingestion/**",
+      "apps/ai-engineering-hub/core/src/sources.rs"
+    ],
+    "analytics": [
+      "apps/ai-engineering-hub/core/src/analytics.rs",
+      "apps/ai-engineering-hub/core/src/analytics/**",
+      "apps/ai-engineering-hub/core/src/intelligence.rs",
+      "apps/ai-engineering-hub/core/src/intelligence/**"
+    ],
+    "contracts": [
+      "packages/shared-types/**",
+      "packages/shared-events/**",
+      "packages/shared-api-contracts/**",
+      "packages/shared-sdk/**"
+    ],
+    "streamdeck": [
+      "apps/streamdeck-plugin/**"
+    ],
+    "security": [
+      "apps/ai-engineering-hub/src-tauri/capabilities/**",
+      "apps/ai-engineering-hub/core/src/server.rs"
+    ],
+    "frontend": [
+      "apps/ai-engineering-hub/src/frontend/**"
+    ],
+    "rust": [
+      "apps/ai-engineering-hub/core/src/**",
+      "apps/ai-engineering-hub/src-tauri/**"
+    ],
+    "testing": [
+      "**/*.test.*",
+      "**/*.spec.*",
+      "**/tests/**"
+    ]
+  }
+}
