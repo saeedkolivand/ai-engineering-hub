@@ -39,32 +39,32 @@ pub async fn token_metrics(pool: &SqlitePool) -> AppResult<TokenMetrics> {
     let base = "FROM raw_events WHERE event_type = 'token_usage'";
 
     let daily = scalar(pool, &format!(
-        "SELECT SUM({tok}) AS value {base} AND DATE(timestamp) = DATE('now')"
+        "SELECT CAST(SUM({tok}) AS REAL) AS value {base} AND DATE(timestamp) = DATE('now')"
     )).await? as u64;
     let weekly = scalar(pool, &format!(
-        "SELECT SUM({tok}) AS value {base} AND strftime('%Y-%W', timestamp) = strftime('%Y-%W','now')"
+        "SELECT CAST(SUM({tok}) AS REAL) AS value {base} AND strftime('%Y-%W', timestamp) = strftime('%Y-%W','now')"
     )).await? as u64;
     let monthly = scalar(pool, &format!(
-        "SELECT SUM({tok}) AS value {base} AND strftime('%Y-%m', timestamp) = strftime('%Y-%m','now')"
+        "SELECT CAST(SUM({tok}) AS REAL) AS value {base} AND strftime('%Y-%m', timestamp) = strftime('%Y-%m','now')"
     )).await? as u64;
 
     let repository_breakdown = breakdown(pool, &format!(
-        "SELECT COALESCE(repositories.name, raw_events.repository_id, 'unattributed') AS label, SUM({tok}) AS value \
+        "SELECT COALESCE(repositories.name, raw_events.repository_id, 'unattributed') AS label, CAST(SUM({tok}) AS REAL) AS value \
          FROM raw_events LEFT JOIN repositories ON raw_events.repository_id = repositories.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC"
     )).await?;
     let provider_breakdown = breakdown(pool, &format!(
-        "SELECT COALESCE(agents.provider, 'unknown') AS label, SUM({tok}) AS value \
+        "SELECT COALESCE(agents.provider, 'unknown') AS label, CAST(SUM({tok}) AS REAL) AS value \
          FROM raw_events LEFT JOIN agents ON raw_events.agent_id = agents.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC"
     )).await?;
     let agent_breakdown = breakdown(pool, &format!(
-        "SELECT COALESCE(agents.name, raw_events.agent_id, 'unknown') AS label, SUM({tok}) AS value \
+        "SELECT COALESCE(agents.name, raw_events.agent_id, 'unknown') AS label, CAST(SUM({tok}) AS REAL) AS value \
          FROM raw_events LEFT JOIN agents ON raw_events.agent_id = agents.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC"
     )).await?;
     let source_breakdown = breakdown(pool, &format!(
-        "SELECT source AS label, SUM({tok}) AS value FROM raw_events \
+        "SELECT source AS label, CAST(SUM({tok}) AS REAL) AS value FROM raw_events \
          WHERE event_type = 'token_usage' GROUP BY source ORDER BY value DESC"
     )).await?;
 
@@ -82,11 +82,11 @@ pub async fn token_metrics(pool: &SqlitePool) -> AppResult<TokenMetrics> {
 pub async fn savings_metrics(pool: &SqlitePool) -> AppResult<SavingsMetrics> {
     let sav = "json_extract(raw_events.payload, '$.savings')";
     let by_source = breakdown(pool, &format!(
-        "SELECT source AS label, SUM({sav}) AS value FROM raw_events \
+        "SELECT source AS label, CAST(SUM({sav}) AS REAL) AS value FROM raw_events \
          WHERE event_type = 'savings' GROUP BY source ORDER BY value DESC"
     )).await?;
     let total = scalar(pool, &format!(
-        "SELECT SUM({sav}) AS value FROM raw_events WHERE event_type = 'savings'"
+        "SELECT CAST(SUM({sav}) AS REAL) AS value FROM raw_events WHERE event_type = 'savings'"
     )).await? as u64;
     Ok(SavingsMetrics { by_source, total_savings: total })
 }
@@ -132,7 +132,7 @@ pub async fn retrieval_metrics(pool: &SqlitePool) -> AppResult<RetrievalMetrics>
     Ok(RetrievalMetrics {
         accuracy: scalar(pool, &format!("SELECT AVG(json_extract(payload, '$.accuracy')) AS value {base}")).await?,
         latency: scalar(pool, &format!("SELECT AVG(json_extract(payload, '$.latency')) AS value {base}")).await?,
-        savings: scalar(pool, &format!("SELECT SUM(json_extract(payload, '$.savings')) AS value {base}")).await? as u64,
+        savings: scalar(pool, &format!("SELECT CAST(SUM(json_extract(payload, '$.savings')) AS REAL) AS value {base}")).await? as u64,
     })
 }
 

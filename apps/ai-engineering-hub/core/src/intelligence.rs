@@ -23,14 +23,14 @@ pub async fn intelligence(pool: &SqlitePool) -> AppResult<Intelligence> {
     )).await?;
 
     let retry_hotspots = breakdown(pool, &format!(
-        "SELECT {repo_label} AS label, SUM(json_extract(payload, '$.retries')) AS value \
+        "SELECT {repo_label} AS label, CAST(SUM(json_extract(payload, '$.retries')) AS REAL) AS value \
          FROM raw_events LEFT JOIN repositories ON raw_events.repository_id = repositories.id \
          GROUP BY label HAVING value > 0 ORDER BY value DESC LIMIT 20"
     )).await?;
 
     let expensive_agents = breakdown(pool,
         "SELECT COALESCE(agents.name, raw_events.agent_id, 'unknown') AS label, \
-         SUM(json_extract(raw_events.payload, '$.tokens')) AS value \
+         CAST(SUM(json_extract(raw_events.payload, '$.tokens')) AS REAL) AS value \
          FROM raw_events LEFT JOIN agents ON raw_events.agent_id = agents.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC LIMIT 20").await?;
 
