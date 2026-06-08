@@ -1,17 +1,23 @@
-[package]
-name = "ai-engineering-hub"
+# Rust workspace for AI Engineering Hub.
+# Members: the single Tauri app (hosts the Axum server) + shared TS/Rust contract crates.
+[workspace]
+resolver = "2"
+members = [
+    "apps/ai-engineering-hub/core",
+    "apps/ai-engineering-hub/src-tauri",
+    "packages/shared-types",
+    "packages/shared-events",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
-[dependencies]
-tauri = { version = "2.0.0-alpha", features = ["api-all"] }
-sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "sqlite"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-anyhow = "1.0"
-tokio = { version = "1.0", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-
-[dev-dependencies]
-rstest = "0.18"
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["serde", "v4"] }
+shared-types = { path = "packages/shared-types" }
+shared-events = { path = "packages/shared-events" }
