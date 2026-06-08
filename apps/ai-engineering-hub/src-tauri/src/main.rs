@@ -1,187 +1,121 @@
-#![cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
-)]
-
-use std::sync::Arc;
-use tauri::{Manager, State};
-use tokio::sync::broadcast;
+use tauri::{Api, Manager, RunEvent, Window};
+use tokio::sync::broadcast::{channel, Sender};
+use sqlx::SqlitePool;
 use serde_json::Value;
-use anyhow::Result;
-use sqlx::sqlite::SqlitePool;
-use tracing_subscriber::EnvFilter;
+use crate::repository::{get_token_usage_by_day, get_token_usage_by_week, get_token_usage_by_month, get_total_savings, get_productivity_metrics, get_quality_metrics, get_retrieval_metrics};
+use crate::collector::start_collector;
 
-mod db;
 mod repository;
 mod collector;
-mod ws;
 
-// Re-export AppState from db module
-use db::AppState;
+/// Represents the application state, including the database pool and event broadcaster.
+struct AppState {
+    pool: SqlitePool,
+    tx: Sender<Value>,
+}
 
-/// Initialize the Tauri application
-fn main() {
-    // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()))
-        .init();
+#[tokio::main]
+async fn main() {
+    // Initialize the SQLite database connection pool
+    let pool = SqlitePool::connect("sqlite:./db.sqlite").await.expect("Failed to connect to database");
 
-    // Build the Tauri application
+    // Set up a broadcast channel for event handling
+    let (tx, rx) = channel(100);
+
+    // Start the metrics collector in a separate task
+    tokio::spawn(async move {
+        start_collector(pool.clone(), rx).await.expect("Failed to start collector");
+    });
+
+    // Build and run the Tauri application
     tauri::Builder::default()
-        .setup(|app| {
-            // Clone the app handle to move into async task
-            let app_handle = app.handle();
-
-            // Initialize DB (async block)
-            let fut = async move {
-                // Use the same init_db from the original backend
-                let pool = db::init_db().await?;
-                let (tx, _) = broadcast::channel::<Value>(100);
-                let state = Arc::new(AppState { pool, tx });
-
-                // Store the state for later command access
-                app_handle.manage(state.clone());
-
-                // Start Axum backend in a separate async task
-                let axum_state = state.clone();
-                tauri::async_runtime::spawn(async move {
-                    // Build the router defined in src/ws.rs
-                    let router = ws::build_router(axum_state);
-                    // Run on a random available port (e.g., 0 binds to OS-assigned)
-                    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
-                        .await
-                        .expect("Failed to bind Axum listener");
-                    let addr = listener.local_addr().expect("Could not get bound address");
-                    tracing::info!("Axum server listening on {}", addr);
-                    axum::Server::from_tcp(listener)
-                        .unwrap()
-                        .serve(router.into_make_service())
-                        .await
-                        .expect("Axum server failed");
-                });
-
-                // Start background collector
-                let collector_state = state.clone();
-                tauri::async_runtime::spawn(async move {
-                    let metrics_dir = std::path::PathBuf::from("metrics");
-                    if metrics_dir.exists() {
-                        let _ = collector::start_watcher(collector_state, metrics_dir).await;
-                    } else {
-                        tracing::warn!("metrics/ directory not found, collector not started");
-                    }
-                });
-
-                // Emit a "ready" event (optional)
-                app_handle.emit_all("app-ready", "").ok();
-
-                Ok::<(), anyhow::Error>(())
-            };
-            // Run the async initializer
-            tauri::async_runtime::block_on(fut)
+        .setup(move |app| {
+            // Initialize the application state with the database pool and event broadcaster
+            app.manage(AppState {
+                pool: pool.clone(),
+                tx: tx.clone(),
+            });
+            Ok(())
         })
-        // Register Tauri commands (converted from Axum handlers)
         .invoke_handler(tauri::generate_handler![
-            list_repositories,
-            list_sessions,
-            list_tasks,
-            list_agents,
-            list_metrics,
-            analytics,
-            list_settings,
-            update_settings
+            send_event,
+            get_token_usage_by_day,
+            get_token_usage_by_week,
+            get_token_usage_by_month,
+            get_total_savings,
+            get_productivity_metrics,
+            get_quality_metrics,
+            get_retrieval_metrics,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
-// ========================
-// Tauri Commands (converted from Axum API)
-// ========================
-
+/// Sends an event to the metrics collector.
 #[tauri::command]
-async fn list_repositories(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    repository::list_repositories(&state.pool)
-        .await
-        .map(|repos| serde_json::json!({ "repositories": repos }))
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn list_sessions(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    repository::list_sessions(&state.pool)
-        .await
-        .map(|sessions| serde_json::json!({ "sessions": sessions }))
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn list_tasks(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    repository::list_tasks(&state.pool)
-        .await
-        .map(|tasks| serde_json::json!({ "tasks": tasks }))
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn list_agents(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    repository::list_agents(&state.pool)
-        .await
-        .map(|agents| serde_json::json!({ "agents": agents }))
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn list_metrics(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    repository::list_metrics(&state.pool)
-        .await
-        .map(|metrics| serde_json::json!({ "metrics": metrics }))
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-async fn analytics(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    let token_metrics = serde_json::json!({
-        "daily": repository::get_token_usage_by_day(&state.pool).await.unwrap_or(0),
-        "weekly": repository::get_token_usage_by_week(&state.pool).await.unwrap_or(0),
-        "monthly": repository::get_token_usage_by_month(&state.pool).await.unwrap_or(0),
+async fn send_event(state: tauri::State<'_, AppState>, event_type: String, payload: Value) -> Result<(), String> {
+    let event = serde_json::json!({
+        "type": event_type,
+        "payload": payload
     });
-    let savings = serde_json::json!({
-        "total": repository::get_total_savings(&state.pool).await.unwrap_or(0),
-    });
-    Ok(serde_json::json!({ "token_metrics": token_metrics, "savings": savings }))
+
+    state.tx.send(event).map_err(|e| e.to_string())?;
+
+    Ok(())
 }
 
-// Settings commands
+/// Fetches daily token usage metrics.
 #[tauri::command]
-async fn list_settings(state: State<'_, Arc<AppState>>) -> Result<Value, String> {
-    // Placeholder: return static settings; replace with DB logic as needed
-    Ok(serde_json::json!({
-        "theme": "light",
-        "apiEndpoint": "",
-        "enableTelemetry": false
-    }))
+async fn get_token_usage_by_day(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_token_usage_by_day(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
 }
 
+/// Fetches weekly token usage metrics.
 #[tauri::command]
-async fn update_settings(state: State<'_, Arc<AppState>>, settings: Value) -> Result<Value, String> {
-    // Placeholder: accept settings and echo back; persist to DB if needed
-    Ok(settings)
+async fn get_token_usage_by_week(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_token_usage_by_week(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
 }
 
-// ========================
-// Event Emission (replaces WebSocket)
-// ========================
+/// Fetches monthly token usage metrics.
+#[tauri::command]
+async fn get_token_usage_by_month(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_token_usage_by_month(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
+}
 
-/// This function can be called from the collector to emit metric updates.
-/// The collector will use the broadcast channel; we listen to it here and forward
-/// to the frontend via Tauri events.
-pub fn start_metric_event_listener(app_handle: tauri::AppHandle, rx: broadcast::Receiver<Value>) {
-    tauri::async_runtime::spawn(async move {
-        let mut rx = rx;
-        while let Ok(msg) = rx.recv().await {
-            let payload = serde_json::to_string(&msg).unwrap_or_default();
-            // Emit to all windows; front‑end can listen on `metrics-update`
-            let _ = app_handle.emit_all("metrics-update", payload);
-        }
-    });
+/// Fetches total savings metrics.
+#[tauri::command]
+async fn get_total_savings(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_total_savings(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
+}
+
+/// Fetches productivity metrics.
+#[tauri::command]
+async fn get_productivity_metrics(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_productivity_metrics(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
+}
+
+/// Fetches quality metrics.
+#[tauri::command]
+async fn get_quality_metrics(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_quality_metrics(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
+}
+
+/// Fetches retrieval metrics.
+#[tauri::command]
+async fn get_retrieval_metrics(state: tauri::State<'_, AppState>) -> Result<Value, String> {
+    let pool = &state.pool;
+    let result = get_retrieval_metrics(pool).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::to_value(result).unwrap())
 }

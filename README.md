@@ -1,82 +1,106 @@
 # AI Engineering Hub
 
-A production‑grade AI Engineering Operations Platform built with:
+## Overview
 
-- **Rust / Tauri v2** – single binary desktop app
-- **Axum + Tokio + SQLx + SQLite** – backend services
-- **React + TypeScript + TanStack Stack** – frontend UI
-- **Shared UI package** – reusable components (`packages/shared-ui`)
-- **Stream Deck plugin** – live metric display via WebSocket
+The AI Engineering Hub is a production-grade AI Engineering Operations Platform designed to function as:
 
-## Architecture Overview
+- **AI Engineering Command Center**
+- **Metrics Collector**
+- **Analytics Engine**
+- **Repository Intelligence Platform**
+- **Local API Platform**
+- **WebSocket Platform**
+- **Stream Deck Data Source**
+- **Foundation for Future Integrations**
 
-```
-apps/
- └─ ai-engineering-hub/
-    ├─ src/
-    │   ├─ backend/            # Rust backend (Axum, SQLx, Tokio)
-    │   └─ frontend/           # React + Vite + TanStack
-    │        ├─ src/
-    │        │   ├─ components/
-    │        │   └─ routes/
-    │        └─ vite.config.ts
-    └─ Cargo.toml               # Tauri config & workspace
-packages/
- └─ shared-ui/                 # UI components (Card, NavBar, Layout)
-```
+The platform is built using Rust, Tauri, Tokio, Axum, SQLx, and SQLite, ensuring high performance, reliability, and scalability. The frontend is developed with React, TypeScript, and TanStack libraries, providing a robust and efficient user interface.
 
-## Development
+## Features
+
+- **Metrics Collection**: Collects metrics from various AI tools (Claude Code, OpenCode, Cline, Gemini CLI, RTK, Graphify, CodeGraph).
+- **Analytics Engine**: Calculates tokens, savings, productivity, quality, and retrieval metrics.
+- **Repository Intelligence**: Provides deep analytics on repositories, including intervention and retry hotspots.
+- **Activity System**: Live activity feed and timeline views for repositories, sessions, tasks, and agents.
+- **Stream Deck Integration**: Monitor key metrics via a Stream Deck plugin.
+- **Command Palette**: Global search and command execution with keyboard shortcuts.
+- **Three-Panel Layout**: Left navigation, center content, and right context panel.
+
+## Architecture
+
+- **Backend**: Rust, Tauri, Tokio, Axum, SQLx, SQLite.
+- **Frontend**: React, TypeScript, TanStack Router, TanStack Query, TanStack Table, TanStack Virtual, TanStack Form, TanStack Store, TanStack Start, TanStack Config.
+- **Shared Packages**: Types, events, API contracts, SDK, design tokens.
+
+## Getting Started
 
 ### Prerequisites
 
-- **Rust** (stable) and **cargo**
-- **Node.js** (≥18) with **pnpm** (or npm)
-- **Tauri CLI** (`cargo install tauri-cli`)
+- Rust and Cargo: [Install Rust](https://www.rust-lang.org/tools/install)
+- Node.js and npm: [Install Node.js](https://nodejs.org/)
+- SQLite: [Install SQLite](https://www.sqlite.org/download.html)
 
-### Backend
+### Setup
 
-```bash
-cd apps/ai-engineering-hub/src/backend
-cargo run            # Starts Axum server on http://localhost:3000
-```
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/yourusername/ai-engineering-hub.git
+   cd ai-engineering-hub
+   ```
 
-### Frontend
+2. **Install Dependencies**
+   ```bash
+   npm install
+   cargo install
+   ```
 
-```bash
-cd apps/ai-engineering-hub/src/frontend
-pnpm install         # Installs React dependencies
-pnpm dev             # Starts Vite dev server (http://localhost:5173)
-```
+3. **Set Up the Database**
+   ```bash
+   sqlx database create
+   sqlx migrate run
+   ```
 
-The frontend proxies API calls to the Rust backend.
+4. **Start the Development Server**
+   ```bash
+   npm run tauri dev
+   ```
 
-### Stream Deck Plugin
+### Building for Production
 
-The plugin lives in `apps/ai-engineering-hub/src/frontend/src/plugins/streamdeck.ts`.  
-It connects to `ws://localhost:3000/ws/metrics`. Build the plugin according to the
-official Stream Deck SDK documentation.
+1. **Build the Application**
+   ```bash
+   npm run tauri build
+   ```
 
-## Building the Desktop Application
+2. **Run the Application**
+   ```bash
+   ./target/release/ai-engineering-hub
+   ```
 
-```bash
-cd apps/ai-engineering-hub
-pnpm install          # Ensures all workspace packages are installed
-pnpm tauri dev        # Runs the Tauri app in development mode
-pnpm tauri build      # Produces a signed binary for the host OS
-```
+## Contributing
 
-## Testing
+Contributions are welcome! Please follow these steps:
 
-- **Backend:** `cargo test` in the backend directory.
-- **Frontend:** `pnpm test` (Jest + React Testing Library).
-- **E2E:** Use Playwright to run UI tests against the running Tauri app.
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/YourFeature`).
+3. Commit your changes (`git commit -m 'Add some feature'`).
+4. Push to the branch (`git push origin feature/YourFeature`).
+5. Open a pull request.
 
 ## Documentation
 
-- `docs/architecture.md` – detailed domain and bounded‑context model.
-- `docs/api.md` – OpenAPI spec for backend endpoints.
-- `docs/streamdeck.md` – Integration guide for the Stream Deck plugin.
+- **Architecture Documentation**: `docs/architecture.md`
+- **API Documentation**: `docs/API_REFERENCE.md`
+- **Database Schema**: `docs/database_schema.md`
+- **Stream Deck Documentation**: `docs/streamdeck.md`
 
 ## License
 
-MIT © AI Engineering Hub Team
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For any questions or suggestions, please open an issue or contact the maintainers directly.
+
+---
+
+**Note**: This README is a starting point and should be expanded with more detailed instructions, diagrams, and examples as the project evolves.

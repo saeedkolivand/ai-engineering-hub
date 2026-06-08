@@ -1,37 +1,40 @@
 use anyhow::Result;
-use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event};
-use std::path::PathBuf;
-use tokio::sync::broadcast::Sender;
+use sqlx::SqlitePool;
 use serde_json::Value;
+use tokio::sync::broadcast::Receiver;
 use tracing::info;
 
-/// Starts a file watcher on the `metrics` directory and forwards parsed JSON logs
-/// to the provided broadcast channel.
-pub async fn start_watcher(state: std::sync::Arc<crate::db::AppState>, dir: PathBuf) -> Result<()> {
-    let tx = state.tx.clone();
+pub async fn start_collector(pool: SqlitePool, mut rx: Receiver<Value>) -> Result<()> {
+    while let Ok(event) = rx.recv().await {
+        let event_type = event.get("type").and_then(Value::as_str);
+        let payload = event.get("payload").cloned().unwrap_or_default();
 
-    // Create a new async watcher
-    let mut watcher: RecommendedWatcher = Watcher::new_immediate(move |res: Result<Event, notify::Error>| {
-        match res {
-            Ok(event) => {
-                // For simplicity, just emit a dummy metric on any change.
-                // In a real implementation you would read the file contents here.
-                let dummy = serde_json::json!({
-                    "type": "file_change",
-                    "path": event.paths.get(0).map(|p| p.to_string_lossy()).unwrap_or_default()
-                });
-                let _ = tx.send(dummy);
-            }
-            Err(e) => {
-                tracing::error!("watch error: {:?}", e);
-            }
+        if let Some(event_type) = event_type {
+            let query = r#"
+                INSERT INTO raw_events (timestamp, source, event_type, payload, repository_id, session_id, task_id, agent_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            "#;
+
+            let repository_id = payload.get("repository_id").and_then(Value::as_str);
+            let session_id = payload.get("session_id").and_then(Value::as_str);
+            let task_id = payload.get("task_id").and_then(Value::as_str);
+            let agent_id = payload.get("agent_id").and_then(Value::as_str);
+
+            sqlx::query(query)
+                .bind(chrono::Utc::now())
+                .bind("metric_collector")
+                .bind(event_type)
+                .bind(payload.to_string())
+                .bind(repository_id)
+                .bind(session_id)
+                .bind(task_id)
+                .bind(agent_id)
+                .execute(&pool)
+                .await?;
+
+            info!("Collected event: {}", event_type);
         }
-    })?;
+    }
 
-    watcher.watch(&dir, RecursiveMode::Recursive)?;
-
-    // Keep the watcher alive for the lifetime of the app.
-    // Since this function runs in a spawned task, we just await forever.
-    futures::future::pending::<()>().await;
     Ok(())
 }

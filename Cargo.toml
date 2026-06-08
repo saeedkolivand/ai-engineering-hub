@@ -1,7 +1,17 @@
-[workspace]
-members = [
-    "apps/ai-engineering-hub/src/backend",
-    "packages/shared-types",
-    "packages/shared-events",
-]
-resolver = "2"
+[package]
+name = "ai-engineering-hub"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tauri = { version = "2.0.0-alpha", features = ["api-all"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "sqlite"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[dev-dependencies]
+rstest = "0.18"
