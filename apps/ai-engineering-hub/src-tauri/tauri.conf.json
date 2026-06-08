@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "AI Engineering Hub",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.aiengineering.hub",
   "build": {
     "frontendDist": "../src/frontend/dist",
@@ -42,7 +42,9 @@
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJFMUYyMEY1NUU2REQ1QTcKUldTbjFXMWU5U0FmTHFtWEFsNjF6SkhjUzNNeW51OXdWekk0MWJIQXlDWGs3Znl5TXB2Y2ZPWXEK"
     },
     "deep-link": {
-      "schemes": ["aeh"]
+      "schemes": [
+        "aeh"
+      ]
     }
   }
 }
