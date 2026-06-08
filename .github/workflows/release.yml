@@ -1,34 +1,77 @@
 name: Release
 
-# Tag a version to cut a release: `node scripts/set-version.mjs 0.2.0` → commit →
-# `git tag v0.2.0 && git push origin v0.2.0`.
+# Runs on every push to main. semantic-release determines whether the commits
+# since the last tag warrant a new release. If yes, the build/plugin/publish
+# jobs run in the same workflow run (no second push/tag event needed).
 on:
   push:
-    tags: ["v*.*.*"]
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
-  # Build signed installers for every platform and publish them to a GitHub Release.
-  # Because the updater is configured + signed, this also uploads `latest.json`, which the
-  # app's updater endpoint points at — enabling auto-update.
-  app:
-    name: Build & release (${{ matrix.os }})
+  # ── 1. Determine next version ──────────────────────────────────────────────
+  version:
+    name: Semantic release
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.sr.outputs.released }}
+      version: ${{ steps.sr.outputs.version }}
+      tag: ${{ steps.sr.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run semantic-release
+        id: sr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          BEFORE=$(git tag -l | sort)
+          pnpm exec semantic-release
+          AFTER=$(git tag -l | sort)
+          NEW_TAG=$(comm -13 <(echo "$BEFORE") <(echo "$AFTER") | tail -1)
+          if [ -n "$NEW_TAG" ]; then
+            echo "released=true"          >> "$GITHUB_OUTPUT"
+            echo "tag=$NEW_TAG"           >> "$GITHUB_OUTPUT"
+            echo "version=${NEW_TAG#v}"   >> "$GITHUB_OUTPUT"
+          else
+            echo "released=false"         >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── 2. Build signed Tauri installers on every platform ────────────────────
+  build:
+    name: Build (${{ matrix.os }})
+    needs: version
+    if: needs.version.outputs.released == 'true'
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: macos-latest
-            args: "--target universal-apple-darwin"
-          - os: ubuntu-22.04
-            args: ""
-          - os: windows-latest
-            args: ""
+        os: [ubuntu-22.04, windows-latest, macos-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          ref: ${{ needs.version.outputs.tag }}
       - name: Install Linux build dependencies
         if: matrix.os == 'ubuntu-22.04'
         run: |
@@ -36,53 +79,108 @@ jobs:
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev build-essential curl wget file \
             libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
-
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.os }}
-
+          key: release-${{ matrix.os }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-
-      - name: Build, sign & publish
-        uses: tauri-apps/tauri-action@v0
+      - name: Build Tauri app
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Required for signed auto-update artifacts (latest.json + .sig).
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: pnpm app:build
+      - name: Upload bundles
+        uses: actions/upload-artifact@v4
         with:
-          projectPath: apps/ai-engineering-hub
-          tagName: ${{ github.ref_name }}
-          releaseName: "AI Engineering Hub ${{ github.ref_name }}"
-          releaseBody: |
-            Download an installer for your platform below. Existing installs auto-update.
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+          name: bundles-${{ matrix.os }}
+          path: target/release/bundle
+          if-no-files-found: warn
 
-  # Package the Stream Deck plugin and attach it to the same release.
+  # ── 3. Package Stream Deck plugin ──────────────────────────────────────────
   plugin:
-    name: Package Stream Deck plugin
-    needs: app
+    name: Stream Deck plugin
+    needs: version
+    if: needs.version.outputs.released == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.tag }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ai-engineering-monitor-plugin build
       - run: pnpm --filter ai-engineering-monitor-plugin run sd:pack
-      - uses: softprops/action-gh-release@v2
+      - uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.ref_name }}
-          files: apps/streamdeck-plugin/*.streamDeckPlugin
+          name: streamdeck-plugin
+          path: apps/streamdeck-plugin/*.streamDeckPlugin
+          if-no-files-found: error
+
+  # ── 4. Assemble latest.json and publish the GitHub release ─────────────────
+  publish:
+    name: Publish release
+    needs: [version, build, plugin]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Assemble updater manifest
+        run: |
+          node scripts/make-update-manifest.mjs \
+            "${{ needs.version.outputs.tag }}" \
+            artifacts \
+            "${{ github.repository }}"
+      - name: Create GitHub release and upload assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --title "AI Engineering Hub $TAG" \
+            --generate-notes
+
+          # Installers + signed updater bundles
+          find artifacts -type f \( \
+            -name "*.AppImage"           -o \
+            -name "*.AppImage.tar.gz"    -o \
+            -name "*.AppImage.tar.gz.sig" -o \
+            -name "*.msi"                -o \
+            -name "*.msi.zip"            -o \
+            -name "*.msi.zip.sig"        -o \
+            -name "*.nsis.exe"           -o \
+            -name "*.nsis.zip"           -o \
+            -name "*.nsis.zip.sig"       -o \
+            -name "*.deb"                -o \
+            -name "*.rpm"                -o \
+            -name "*.dmg"                -o \
+            -name "*.app.tar.gz"         -o \
+            -name "*.app.tar.gz.sig"     -o \
+            -name "*.streamDeckPlugin"   \
+          \) -exec gh release upload "$TAG" {} \
+               --repo "${{ github.repository }}" --clobber \;
+
+          # Updater manifest (fetched by the app's auto-updater)
+          gh release upload "$TAG" latest.json \
+            --repo "${{ github.repository }}" --clobber
