@@ -30,7 +30,7 @@
     "dialog:allow-confirm",
     "shell:allow-open",
     "notification:default",
-    "notification:allow-send-notification",
+    "notification:allow-notify",
     "notification:allow-is-permission-granted",
     "notification:allow-request-permission",
     "clipboard-manager:default",
