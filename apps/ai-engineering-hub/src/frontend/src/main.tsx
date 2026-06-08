@@ -4,8 +4,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { queryClient } from "./lib/queryClient";
+import { initTheme } from "./lib/theme";
 import "shared-design-tokens/tokens.css";
 import "./styles.css";
+
+// Apply the saved theme before first paint (also tracks the OS in "system" mode).
+initTheme();
 
 const router = createRouter({
   routeTree,

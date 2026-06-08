@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { HUB_BASE } from "../lib/hub";
+import { setThemePref, type ThemePref } from "../lib/theme";
 
 export const Route = createFileRoute("/settings")({
   component: Settings,
@@ -58,7 +59,11 @@ function Settings() {
                   className="input"
                   style={{ width: "100%" }}
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value as ThemePref;
+                    field.handleChange(v);
+                    setThemePref(v); // apply + persist immediately (live preview)
+                  }}
                 >
                   <option value="system">System</option>
                   <option value="light">Light</option>

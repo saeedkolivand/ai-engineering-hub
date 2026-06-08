@@ -29,6 +29,10 @@
   --color-warn: #9a6700;
   --color-error: #b3261e;
   --color-info: #0066cc;
+  /* Status tints (pill / banner backgrounds — theme-aware) */
+  --color-success-bg: #e6f0e9;
+  --color-warn-bg: #f5eeda;
+  --color-error-bg: #f6e3e2;
 
   /* Type */
   --font-display: "SF Pro Display", system-ui, -apple-system, "Inter", sans-serif;
@@ -77,4 +81,31 @@
   /* Interaction */
   --press-scale: 0.95;
   --focus-ring: 0 0 0 2px var(--color-accent-focus);
+}
+
+/* Dark theme. Applied via [data-theme="dark"] on <html> (set by the app from the
+   Settings theme preference; "system" resolves to this when the OS is dark).
+   Light is the :root default, so only the surface/ink/status values flip here. */
+[data-theme="dark"] {
+  /* Brighter accent for contrast on dark surfaces (per the design system) */
+  --color-accent: #2997ff;
+
+  /* Ink + surfaces inverted */
+  --color-ink: #f5f5f7;
+  --color-ink-muted: #c7c7cc;
+  --color-ink-faint: #8e8e93;
+  --color-canvas: #1e1e20;       /* cards, top bar, right panel, inputs */
+  --color-parchment: #151517;    /* app background (darker than canvas so cards lift) */
+  --color-pearl: #242426;        /* table header / subtle fills */
+  --color-hairline: #3a3a3c;
+  --color-divider-soft: #2a2a2c;
+
+  /* Brighter status on dark + translucent tints */
+  --color-success: #30d158;
+  --color-warn: #ffd60a;
+  --color-error: #ff453a;
+  --color-info: #2997ff;
+  --color-success-bg: rgba(48, 209, 88, 0.16);
+  --color-warn-bg: rgba(255, 214, 10, 0.16);
+  --color-error-bg: rgba(255, 69, 58, 0.18);
 }
