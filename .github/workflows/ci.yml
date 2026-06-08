@@ -90,4 +90,4 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build desktop app (compile check — no installers)
-        run: cd apps/ai-engineering-hub && tauri build --no-bundle
+        run: cd apps/ai-engineering-hub && pnpm exec tauri build --no-bundle
