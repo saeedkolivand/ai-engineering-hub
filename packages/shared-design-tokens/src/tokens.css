@@ -1,0 +1,80 @@
+/* Apple-derived design tokens at operational density. Import once at the app root.
+   See packages/shared-design-tokens/src/index.ts and design/DESIGN-apple.md. */
+:root {
+  /* Single interactive accent */
+  --color-accent: #0066cc;
+  --color-accent-focus: #0071e3;
+  --color-accent-on-dark: #2997ff;
+
+  /* Ink + light surfaces */
+  --color-ink: #1d1d1f;
+  --color-ink-muted: #333333;
+  --color-ink-faint: #7a7a7a;
+  --color-canvas: #ffffff;
+  --color-parchment: #f5f5f7;
+  --color-pearl: #fafafc;
+  --color-hairline: #e0e0e0;
+  --color-divider-soft: #f0f0f0;
+
+  /* Dark operational chrome */
+  --color-surface-1: #272729;
+  --color-surface-2: #2a2a2c;
+  --color-surface-3: #252527;
+  --color-black: #000000;
+  --color-on-dark: #ffffff;
+  --color-on-dark-muted: #cccccc;
+
+  /* Muted status (metric/build state only) */
+  --color-success: #2c7a3f;
+  --color-warn: #9a6700;
+  --color-error: #b3261e;
+  --color-info: #0066cc;
+
+  /* Type */
+  --font-display: "SF Pro Display", system-ui, -apple-system, "Inter", sans-serif;
+  --font-text: "SF Pro Text", system-ui, -apple-system, "Inter", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Hero ramp */
+  --fs-hero: 56px;
+  --fs-display-lg: 40px;
+  --fs-lead: 28px;
+  --fs-tagline: 21px;
+  --fs-body: 17px;
+  /* Dense operational ramp */
+  --fs-ui-lg: 14px;
+  --fs-ui: 13px;
+  --fs-ui-sm: 12px;
+  --fs-micro: 11px;
+
+  /* Radius */
+  --radius-none: 0px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+
+  /* Spacing — 8px rhythm + dense scale */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 17px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 80px;
+  --space-row: 6px;
+  --space-cell: 8px;
+
+  /* Elevation (restrained) */
+  --elevation-product: 3px 5px 30px 0 rgba(0, 0, 0, 0.22);
+  --elevation-overlay: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* Interaction */
+  --press-scale: 0.95;
+  --focus-ring: 0 0 0 2px var(--color-accent-focus);
+}
