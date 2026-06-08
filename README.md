@@ -15,7 +15,7 @@
 Ingests metrics from any AI dev tool, computes analytics + repository intelligence, and serves a
 local API/WebSocket — consumed by its own desktop UI and a companion Stream Deck plugin.
 
-[Install](#install) · [Getting started](docs/getting-started.md) · [Documentation](docs/README.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Contributing](CONTRIBUTING.md)
+[Website](https://saeedkolivand.github.io/ai-engineering-hub/) · [Install](#install) · [Getting started](docs/getting-started.md) · [Documentation](docs/README.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
