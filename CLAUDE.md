@@ -21,7 +21,8 @@ Local-first desktop platform in a pnpm + Cargo + Turbo monorepo. **Tauri is the 
 
 ```
 apps/ai-engineering-hub/
-  src-tauri/           ← Rust core: Tauri v2 + Axum HTTP/WS (runs inside Tauri), SQLx/SQLite, ingestion, analytics, intelligence
+  core/                ← Rust core (Tauri-free): Axum HTTP/WS server, SQLx/SQLite, dynamic ingestion, analytics, intelligence
+  src-tauri/           ← Tauri v2 shell (thin): owns the process, spawns the core server in setup()
   src/frontend/        ← React + TanStack renderer (Vite SPA)
 apps/streamdeck-plugin/ ← Elgato Stream Deck plugin (separate app; consumes Hub API/WS only)
 packages/
@@ -116,11 +117,12 @@ Typed errors and `tracing` spans; SQLite work off the async runtime. Don't inven
 
 | What | Where |
 | --- | --- |
-| Tauri entry + Axum bootstrap | `apps/ai-engineering-hub/src-tauri/src/main.rs` |
-| Ingestion (adapters, watcher, registry) | `apps/ai-engineering-hub/src-tauri/src/ingestion/` |
-| Analytics queries | `apps/ai-engineering-hub/src-tauri/src/analytics/` |
-| Repository intelligence | `apps/ai-engineering-hub/src-tauri/src/intelligence/` |
-| Axum routes + WS | `apps/ai-engineering-hub/src-tauri/src/routes/` |
+| Tauri entry (spawns server) | `apps/ai-engineering-hub/src-tauri/src/main.rs` |
+| Core bootstrap (`run`/`bootstrap`) | `apps/ai-engineering-hub/core/src/lib.rs` |
+| Ingestion (adapters, watcher, registry) | `apps/ai-engineering-hub/core/src/ingestion/`, `core/src/sources.rs` |
+| Analytics queries | `apps/ai-engineering-hub/core/src/analytics.rs` |
+| Repository intelligence | `apps/ai-engineering-hub/core/src/intelligence.rs` |
+| Axum routes + WS | `apps/ai-engineering-hub/core/src/server.rs` |
 | Migrations | `apps/ai-engineering-hub/src-tauri/migrations/` |
 | Frontend app | `apps/ai-engineering-hub/src/frontend/src/` |
 | Routes (file-based) | `apps/ai-engineering-hub/src/frontend/src/routes/` |
