@@ -1,106 +1,54 @@
 # AI Engineering Hub
 
-## Overview
+A production-grade **AI Engineering Operations Platform**: a single Tauri v2 desktop app that
+ingests metrics from any AI dev tool, computes analytics + repository intelligence, and serves
+a local API/WebSocket consumed by its own React UI and a companion Stream Deck plugin.
 
-The AI Engineering Hub is a production-grade AI Engineering Operations Platform designed to function as:
+Target feel: GitHub / Linear / Datadog density with Apple-grade restraint — an operational
+tool, not a dashboard.
 
-- **AI Engineering Command Center**
-- **Metrics Collector**
-- **Analytics Engine**
-- **Repository Intelligence Platform**
-- **Local API Platform**
-- **WebSocket Platform**
-- **Stream Deck Data Source**
-- **Foundation for Future Integrations**
+## What it does
+- **Metrics collector** — source-agnostic ingestion (HTTP push, file watcher, manual import).
+  Tools are **data, not code**: the named tools (Claude Code, OpenCode, Cline, Gemini CLI,
+  RTK, Graphify, CodeGraph) ship as presets; any other tool auto-registers on first event.
+- **Analytics engine** — tokens, savings, productivity, quality, retrieval — all dimensional
+  (group by source / provider / agent / repository).
+- **Repository intelligence** — intervention/retry hotspots, expensive agents, retrieval
+  bottlenecks.
+- **Operational UI** — three-panel layout, 10-item nav, drill-down (repo → session → task →
+  agent), tables-first, Ctrl/Cmd-K command palette, live activity feed.
+- **Stream Deck plugin** — 9 monitors (incl. Context Health) consuming the Hub.
 
-The platform is built using Rust, Tauri, Tokio, Axum, SQLx, and SQLite, ensuring high performance, reliability, and scalability. The frontend is developed with React, TypeScript, and TanStack libraries, providing a robust and efficient user interface.
+## Stack
+- Backend: Rust · Tauri v2 · Tokio · Axum · SQLx · SQLite (single process; Axum runs inside Tauri).
+- Frontend: React · TypeScript · TanStack Router/Query/Table/Virtual/Form/Store.
+- Plugin: Elgato Stream Deck SDK v2.
+- Shared: `packages/shared-{types,events,api-contracts,sdk,design-tokens}` (TS↔Rust parity).
 
-## Features
+## Layout
+```
+apps/ai-engineering-hub/{core, src-tauri, src/frontend}
+apps/streamdeck-plugin
+packages/shared-{types,events,api-contracts,sdk,design-tokens}
+```
 
-- **Metrics Collection**: Collects metrics from various AI tools (Claude Code, OpenCode, Cline, Gemini CLI, RTK, Graphify, CodeGraph).
-- **Analytics Engine**: Calculates tokens, savings, productivity, quality, and retrieval metrics.
-- **Repository Intelligence**: Provides deep analytics on repositories, including intervention and retry hotspots.
-- **Activity System**: Live activity feed and timeline views for repositories, sessions, tasks, and agents.
-- **Stream Deck Integration**: Monitor key metrics via a Stream Deck plugin.
-- **Command Palette**: Global search and command execution with keyboard shortcuts.
-- **Three-Panel Layout**: Left navigation, center content, and right context panel.
+## Quick start
+```
+pnpm install
+cargo run -p aeh-core --example smoke          # backend logic smoke check
+pnpm --filter ai-engineering-hub-frontend dev  # UI dev server
+cargo run -p ai-engineering-hub-tauri          # desktop app + Hub API (127.0.0.1:47800)
+```
+See [docs/deployment.md](docs/deployment.md) for release builds and plugin packaging.
 
-## Architecture
+## Docs
+[Architecture](docs/architecture.md) · [API](docs/api.md) · [Database](docs/database.md) ·
+[Design system](docs/design-system.md) · [Stream Deck](docs/streamdeck.md) ·
+[Contributing](docs/CONTRIBUTING.md) · design artifacts in [design/](design/).
 
-- **Backend**: Rust, Tauri, Tokio, Axum, SQLx, SQLite.
-- **Frontend**: React, TypeScript, TanStack Router, TanStack Query, TanStack Table, TanStack Virtual, TanStack Form, TanStack Store, TanStack Start, TanStack Config.
-- **Shared Packages**: Types, events, API contracts, SDK, design tokens.
-
-## Getting Started
-
-### Prerequisites
-
-- Rust and Cargo: [Install Rust](https://www.rust-lang.org/tools/install)
-- Node.js and npm: [Install Node.js](https://nodejs.org/)
-- SQLite: [Install SQLite](https://www.sqlite.org/download.html)
-
-### Setup
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/yourusername/ai-engineering-hub.git
-   cd ai-engineering-hub
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   cargo install
-   ```
-
-3. **Set Up the Database**
-   ```bash
-   sqlx database create
-   sqlx migrate run
-   ```
-
-4. **Start the Development Server**
-   ```bash
-   npm run tauri dev
-   ```
-
-### Building for Production
-
-1. **Build the Application**
-   ```bash
-   npm run tauri build
-   ```
-
-2. **Run the Application**
-   ```bash
-   ./target/release/ai-engineering-hub
-   ```
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Open a pull request.
-
-## Documentation
-
-- **Architecture Documentation**: `docs/architecture.md`
-- **API Documentation**: `docs/API_REFERENCE.md`
-- **Database Schema**: `docs/database_schema.md`
-- **Stream Deck Documentation**: `docs/streamdeck.md`
+## Working in this repo
+See [CLAUDE.md](CLAUDE.md) for project rules and the explicitly-invoked `.claude/` agent system
+(agents/commands/skills).
 
 ## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any questions or suggestions, please open an issue or contact the maintainers directly.
-
----
-
-**Note**: This README is a starting point and should be expanded with more detailed instructions, diagrams, and examples as the project evolves.
+MIT.

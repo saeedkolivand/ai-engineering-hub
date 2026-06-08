@@ -1,43 +1,38 @@
-# API Documentation
+# Hub API
 
-## HTTP Endpoints
+The Axum server runs inside the Tauri process on `http://127.0.0.1:47800` (REST) and
+`ws://127.0.0.1:47800/ws/events` (WebSocket). It is the single data source for the desktop
+UI and the Stream Deck plugin. Contracts: [packages/shared-api-contracts](../packages/shared-api-contracts);
+routes: [core/src/server.rs](../apps/ai-engineering-hub/core/src/server.rs). Prefer the typed
+[shared-sdk](../packages/shared-sdk) `HubClient` over raw fetch.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/repositories` | List repositories with analytics |
-| `GET` | `/api/sessions` | List sessions |
-| `GET` | `/api/tasks` | List tasks |
-| `GET` | `/api/agents` | List agents |
-| `GET` | `/api/metrics` | Retrieve metric records |
-| `GET` | `/api/analytics` | Token usage analytics (daily, weekly, monthly) and total savings |
-| `GET` | `/api/health` | Health check endpoint |
+## REST
 
-All endpoints return JSON payloads and are typed with `serde`.
+| Method | Path | Returns |
+| --- | --- | --- |
+| GET | `/health` | `"ok"` |
+| GET | `/api/v1/repositories` | `Repository[]` |
+| GET | `/api/v1/repositories/{id}` | `Repository` |
+| GET | `/api/v1/sessions?repository_id=` | `Session[]` |
+| GET | `/api/v1/tasks?session_id=` | `Task[]` |
+| GET | `/api/v1/agents` | `Agent[]` |
+| GET | `/api/v1/sources` | `Source[]` |
+| POST | `/api/v1/sources/{id}/enabled` | `{ ok }` — body `{ enabled: boolean }` |
+| GET | `/api/v1/analytics` | `AnalyticsMetrics` (tokens/savings/productivity/quality/retrieval) |
+| GET | `/api/v1/intelligence` | hotspots/bottlenecks |
+| POST | `/api/v1/ingest` | `{ ingested }` — body `EventEnvelope` or `EventEnvelope[]` |
 
-## WebSocket Events
-
-The WebSocket streams events of type `agentMetrics`:
-
+## Ingestion (`POST /api/v1/ingest`)
+Source-agnostic. Any tool posts canonical envelopes; unknown `source` keys auto-register
+(disabled) in the registry and surface in the UI Integrations inbox.
 ```json
-{
-  "type": "agentMetrics",
-  "metrics": [
-    { "agent": "Claude", "tokensUsed": 12345, "tokensSaved": 2345 },
-    { "agent": "RTK", "tokensUsed": 5678, "tokensSaved": 1023 },
-    { "agent": "Graphify", "tokensUsed": 890, "tokensSaved": 150 }
-  ]
-}
+{ "source": "claude-code", "event_type": "token_usage", "timestamp": "2026-06-08T12:00:00Z",
+  "refs": { "repository_id": "…" }, "payload": { "tokens": 1200 } }
 ```
+Other paths: the `notify` file watcher (watched dirs/globs) and manual import — all converge
+on the same `ingest` core.
 
-Clients should subscribe to the `/ws/metrics` endpoint to receive real‑time updates.
-
-## Tauri Commands (Frontend ↔ Backend)
-
-- `start_backend` – placeholder to ensure the backend is ready.  
-- Additional commands can be added in `src/backend/src/main.rs` as needed.
-
-## Stream Deck Plugin Commands
-
-- `get_latest_metrics` – Returns an array of the most recent metrics (placeholder implementation).
-
-All commands are exposed via Tauri’s IPC layer and can be invoked from the frontend or a Stream Deck plugin.
+## WebSocket (`/ws/events`)
+Subscribers receive `HubEvent` frames as JSON: `{ "type": "event", "payload": EventEnvelope }`
+or `{ "type": "activity", "payload": ActivityEvent }`. Used by the Activity feed and the
+Stream Deck monitors.
