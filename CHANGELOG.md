@@ -1,3 +1,13 @@
+## [0.2.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.1.2...v0.2.0) (2026-06-08)
+
+### Features
+
+* **brew:** add in-repo Homebrew cask with auto-update on release ([ac52a88](https://github.com/saeedkolivand/ai-engineering-hub/commit/ac52a88c4b7f79d8a4f00e2dc1a28a9c49700b2d))
+
+### Bug Fixes
+
+* trigger release to test homebrew cask auto-update ([1c62de0](https://github.com/saeedkolivand/ai-engineering-hub/commit/1c62de0fe59746c054a69082abc0c39df31f1626))
+
 ## [0.1.2](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.1.1...v0.1.2) (2026-06-08)
 
 ### Bug Fixes

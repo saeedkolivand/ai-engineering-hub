@@ -1,7 +1,7 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Name": "AI Engineering Monitor",
-  "Version": "0.1.2.0",
+  "Version": "0.2.0.0",
   "Author": "AI Engineering Hub",
   "Description": "Live AI engineering metrics streamed from the AI Engineering Hub local API.",
   "Category": "AI Engineering Monitor",
