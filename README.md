@@ -33,13 +33,15 @@ packages/shared-{types,events,api-contracts,sdk,design-tokens}
 ```
 
 ## Quick start
+Browser dev needs two processes — the Hub API and the UI (the API normally runs inside the
+Tauri app, so `pnpm dev` alone shows "Failed to fetch"):
 ```
 pnpm install
-cargo run -p aeh-core --example smoke          # backend logic smoke check
-pnpm --filter ai-engineering-hub-frontend dev  # UI dev server
-cargo run -p ai-engineering-hub-tauri          # desktop app + Hub API (127.0.0.1:47800)
+pnpm dev:hub    # terminal 1 — Hub API on 127.0.0.1:47800 (cargo run -p aeh-core --example serve)
+pnpm dev        # terminal 2 — Vite UI on :5173
 ```
-See [docs/deployment.md](docs/deployment.md) for release builds and plugin packaging.
+Backend-only smoke check: `cargo run -p aeh-core --example smoke`.
+See [docs/deployment.md](docs/deployment.md) for seeding data, release builds, and plugin packaging.
 
 ## Docs
 [Architecture](docs/architecture.md) · [API](docs/api.md) · [Database](docs/database.md) ·
