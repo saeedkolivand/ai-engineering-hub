@@ -53,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
     println!("tokens.monthly = {}", a.tokens.monthly_usage);
     println!("tokens.source_breakdown = {:?}", a.tokens.source_breakdown);
     println!("savings.total = {}", a.savings.total_savings);
-    println!("retrieval.accuracy = {}", a.retrieval.accuracy);
+    println!("retrieval.accuracy = {:?}", a.retrieval.accuracy);
 
     assert_eq!(a.tokens.monthly_usage, 2000, "1200 + 800 tokens");
     assert_eq!(a.savings.total_savings, 500);
