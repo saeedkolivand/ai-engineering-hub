@@ -5,11 +5,14 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { queryClient } from "./lib/queryClient";
 import { initTheme } from "./lib/theme";
+import { checkForUpdates } from "./lib/updater";
 import "shared-design-tokens/tokens.css";
 import "./styles.css";
 
 // Apply the saved theme before first paint (also tracks the OS in "system" mode).
 initTheme();
+// Self-update check (no-op outside the packaged desktop app).
+void checkForUpdates();
 
 const router = createRouter({
   routeTree,

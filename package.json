@@ -1,6 +1,6 @@
 {
   "name": "ai-engineering-hub",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.0.9",
   "scripts": {
@@ -9,6 +9,7 @@
     "app:dev": "cd apps/ai-engineering-hub && tauri dev",
     "app:build": "cd apps/ai-engineering-hub && tauri build",
     "tauri": "tauri",
+    "version:set": "node scripts/set-version.mjs",
     "build": "turbo build",
     "test": "turbo test",
     "lint": "turbo lint",

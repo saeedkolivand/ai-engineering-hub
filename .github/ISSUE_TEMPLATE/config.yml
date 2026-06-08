@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & ideas
+    url: https://github.com/saeedkolivand/ai-engineering-hub/discussions
+    about: Ask questions and discuss ideas in GitHub Discussions.
+  - name: 📚 Documentation
+    url: https://github.com/saeedkolivand/ai-engineering-hub/tree/main/docs
+    about: Read the docs before filing — your answer may be there.

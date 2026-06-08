@@ -1,0 +1,54 @@
+name: 🐞 Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file a bug! Please fill out the sections below.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including what you expected instead.
+      placeholder: When I enable the Cline integration, no data appears…
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `pnpm app:dev`
+        2. Open Integrations and enable …
+        3. See …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Collectors / ingestion
+        - Analytics
+        - Desktop UI
+        - Stream Deck plugin
+        - Build / packaging
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS + version, and the output of `cargo --version`, `node --version`, `pnpm --version`.
+      placeholder: |
+        OS: Windows 11
+        rustc 1.96.0, node 22.x, pnpm 11.x
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Console output from `pnpm app:dev` / `pnpm dev:hub`. Please redact any local paths or usernames.
+      render: shell

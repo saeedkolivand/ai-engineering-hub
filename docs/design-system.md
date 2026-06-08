@@ -32,4 +32,33 @@ In CSS use the variables (`var(--color-accent)`, `var(--fs-ui)`, `var(--radius-l
 hardcode hex. The hub frontend ([styles.css](../apps/ai-engineering-hub/src/frontend/src/styles.css))
 and the Stream Deck plugin both consume these tokens.
 
+## Theming
+
+The Hub supports **light / dark / system** themes. Light is the `:root` default; dark is a
+`[data-theme="dark"]` token override in
+[tokens.css](../packages/shared-design-tokens/src/tokens.css). The app sets `data-theme` on
+`<html>`:
+
+- The preference (`system` | `light` | `dark`) is stored in `localStorage` under `aeh.settings`
+  and applied via [lib/theme.ts](../apps/ai-engineering-hub/src/frontend/src/lib/theme.ts).
+- An inline script in `index.html` applies it **before first paint** (no flash).
+- `system` resolves via `matchMedia('(prefers-color-scheme: dark)')` and updates live when the OS
+  changes.
+- Change it in **Settings → Theme** (applies instantly).
+
+Because every surface uses the token variables, both themes — and the Stream Deck plugin — stay
+consistent automatically. Status tints (`--color-success-bg`, …) are theme-aware so pills and
+banners adapt.
+
+## Component primitives
+
+| Token group | Used by |
+| --- | --- |
+| `--color-accent` (+ focus/on-dark) | links, primary buttons, active nav, focus ring |
+| `--color-canvas` / `parchment` / `pearl` | cards, app background, table headers |
+| `--color-ink` / `ink-muted` / `ink-faint` | text hierarchy |
+| `--fs-ui*` (13–14px ramp) | tables, nav, right panel, command palette |
+| `--radius-*`, `--space-*` | one radius/spacing grammar across the app |
+| `--elevation-overlay` | command palette, dropdowns, sticky bars (overlays only) |
+
 Review token usage with `/review-design` (agent `design-system-steward`, skill `design-system`).

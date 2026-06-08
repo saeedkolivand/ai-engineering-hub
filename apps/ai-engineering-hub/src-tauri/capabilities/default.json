@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Core webview permissions plus self-update (updater + process restart).",
+  "windows": ["main"],
+  "permissions": ["core:default", "updater:default", "process:default"]
+}
