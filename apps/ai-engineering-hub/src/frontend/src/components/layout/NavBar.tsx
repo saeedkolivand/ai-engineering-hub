@@ -1,34 +1,36 @@
-import React from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link } from "@tanstack/react-router";
 
-const navItems = [
-  { label: 'Overview', to: '/overview' },
-  { label: 'Repositories', to: '/repositories' },
-  { label: 'Sessions', to: '/sessions' },
-  { label: 'Tasks', to: '/tasks' },
-  { label: 'Agents', to: '/agents' },
-  { label: 'Analytics', to: '/analytics' },
-  { label: 'Activity', to: '/activity' },
-  { label: 'Settings', to: '/settings' },
+const ITEMS: { to: string; label: string; exact?: boolean }[] = [
+  { to: "/", label: "Overview", exact: true },
+  { to: "/repositories", label: "Repositories" },
+  { to: "/sessions", label: "Sessions" },
+  { to: "/tasks", label: "Tasks" },
+  { to: "/agents", label: "Agents" },
+  { to: "/retrieval", label: "Retrieval" },
+  { to: "/analytics", label: "Analytics" },
+  { to: "/quality", label: "Quality" },
+  { to: "/activity", label: "Activity" },
+  { to: "/settings", label: "Settings" },
 ];
 
-export const NavBar: React.FC = () => {
+export function NavBar() {
   return (
-    <nav className="w-64 bg-gray-800 text-white flex flex-col">
-      <div className="p-4 font-bold text-xl">AI Hub</div>
-      <ul className="flex-1 overflow-y-auto">
-        {navItems.map((item) => (
-          <li key={item.to} className="hover:bg-gray-700">
-            <Link
-              to={item.to}
-              className="block px-4 py-2"
-              activeProps={{ className: 'bg-gray-700' }}
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <nav className="nav">
+      <div className="brand">AI Engineering Hub</div>
+      {ITEMS.map((it) => (
+        <Link
+          key={it.to}
+          to={it.to}
+          activeProps={{ className: "active" }}
+          activeOptions={{ exact: it.exact }}
+        >
+          {it.label}
+        </Link>
+      ))}
+      <div style={{ height: 12 }} />
+      <Link to="/integrations" activeProps={{ className: "active" }}>
+        Integrations
+      </Link>
     </nav>
   );
-};
+}

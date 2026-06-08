@@ -8,8 +8,8 @@ import type {
   Session,
   Source,
   Task,
-} from "@shared-types";
-import type { EventEnvelope } from "@shared-events";
+} from "shared-types";
+import type { EventEnvelope } from "shared-events";
 
 /** Base path for the versioned REST API. */
 export const API_BASE = "/api/v1";
@@ -58,5 +58,5 @@ export type {
   Session,
   Source,
   Task,
-} from "@shared-types";
-export type { EventEnvelope, HubEvent, ActivityEvent } from "@shared-events";
+} from "shared-types";
+export type { EventEnvelope, HubEvent, ActivityEvent } from "shared-events";

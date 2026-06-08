@@ -1,0 +1,20 @@
+{
+  "name": "ai-engineering-monitor-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^2.1.0",
+    "shared-events": "workspace:*",
+    "shared-sdk": "workspace:*",
+    "shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,64 +1,39 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  createColumnHelper,
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  flexRender,
-} from '@tanstack/react-table';
-import { fetchAgents } from '../../api';
-import { Agent } from '@shared-types';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Agent } from "shared-types";
+import { DataTable } from "../components/DataTable";
+import { useAgents } from "../api/hooks";
+import { agentsQuery } from "../lib/queries";
+import { setSelection } from "../lib/store";
 
-const columnHelper = createColumnHelper<Agent>();
+export const Route = createFileRoute("/agents")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(agentsQuery()),
+  component: Agents,
+});
 
-const columns = [
-  columnHelper.accessor('id', { header: () => 'ID' }),
-  columnHelper.accessor('name', { header: () => 'Name' }),
-  columnHelper.accessor('type', { header: () => 'Type' }),
-];
+function Agents() {
+  const { data } = useAgents();
+  const navigate = useNavigate();
 
-export function Agents() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['agents'],
-    queryFn: fetchAgents,
-  });
-
-  const table = useReactTable({
-    data: data?.agents ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
-
-  if (isLoading) return <div>Loading agents…</div>;
-  if (error) return <div>Error loading agents.</div>;
+  const columns: ColumnDef<Agent, any>[] = [
+    { accessorKey: "name", header: "Agent" },
+    { accessorKey: "provider", header: "Provider" },
+    { accessorKey: "model_id", header: "Model", cell: (c) => (c.getValue() as string) ?? "—" },
+  ];
 
   return (
     <div>
-      <h2>Agents</h2>
-      <table>
-        <thead>
-          {table.getHeaderGroups().map(hg => (
-            <tr key={hg.id}>
-              {hg.headers.map(h => (
-                <th key={h.id}>
-                  {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h1 className="page-title">Agents</h1>
+      <DataTable
+        data={data ?? []}
+        columns={columns}
+        searchPlaceholder="Filter agents…"
+        empty="No agents yet."
+        onRowClick={(a) => {
+          setSelection({ kind: "agent", id: a.id, label: a.name, meta: { provider: a.provider, model: a.model_id } });
+          navigate({ to: "/agents/$agentId", params: { agentId: a.id } });
+        }}
+      />
     </div>
   );
 }

@@ -1,63 +1,38 @@
-# Stream Deck Integration Guide
+# Stream Deck Plugin
 
-The Stream Deck plugin lives in `apps/ai-engineering-hub/src/frontend/src/plugins/streamdeck.ts`.
+A real Elgato Stream Deck plugin (SDK v2) at [apps/streamdeck-plugin](../apps/streamdeck-plugin).
+It is a separate app launched by the Stream Deck software; it consumes the Hub's local API via
+[shared-sdk](../packages/shared-sdk) and **never** parses logs, accesses SQLite, or computes
+analytics.
 
-## Overview
-
-- The plugin creates a **WebSocket consumer** that connects to `ws://localhost:3000/ws/metrics`.
-- It receives `HubEvent` messages and forwards them to the Stream Deck UI via `window.sendToPropertyInspector`.
-- New **agentMetrics** event type provides token usage and savings per CLI agent.
-
-## Agent Metrics Event
-
-| Property   | Type   | Description                                    |
-|------------|--------|------------------------------------------------|
-| `type`     | string | Always `"agentMetrics"`                        |
-| `metrics`  | array  | List of objects containing per‑agent data      |
-
-### Metric Object
-
-| Field       | Type   | Description                                 |
-|-------------|--------|---------------------------------------------|
-| `agent`     | string | CLI tool name (e.g., `Claude`, `RTK`)       |
-| `tokensUsed`| number | Tokens consumed by this agent               |
-| `tokensSaved`| number| Tokens saved by this agent (e.g., via optimizations) |
-
-#### Example Payload Sent to Stream Deck
-
-```json
-{
-  "type": "agentMetrics",
-  "metrics": [
-    { "agent": "Claude", "tokensUsed": 12345, "tokensSaved": 2345 },
-    { "agent": "RTK", "tokensUsed": 5678, "tokensSaved": 1023 },
-    { "agent": "Graphify", "tokensUsed": 890, "tokensSaved": 150 }
-  ]
-}
+## Structure
+```
+com.aiengineering.monitor.sdPlugin/
+  manifest.json     9 keypad actions (SDKVersion 2, Nodejs runtime)
+  bin/plugin.js     bundled entry (tsup) — CodePath
+  imgs/             icons (add before packaging)
+src/
+  plugin.ts         registers actions, streamDeck.connect()
+  actions.ts        MetricMonitor base + 9 monitors
+  hub.ts            shared-sdk HubClient (the only data path)
 ```
 
-## Building the Plugin
+## Monitors (9)
+Token · Savings · Agent · Task · Intervention · Productivity · Build Health · Retrieval ·
+**Context Health**. Each is a `SingletonAction` that polls `GET /api/v1/analytics` via the
+HubClient and renders a key title. Swap polling for the `/ws/events` stream by calling
+`hub.connect(...)` for push updates.
 
-1. Follow the official **Elgato Stream Deck SDK** installation steps.
-2. Compile the frontend (`pnpm -C apps/ai-engineering-hub/src/frontend build`).
-3. Place the generated JavaScript bundle (e.g., `streamdeck.js`) into the plugin’s `Contents/` folder.
-4. Ensure `manifest.json` references the entry point `streamdeck.js`.
-5. Load the plugin in the Stream Deck application (Developer > Load Plugin).
+## Build & install
+```
+cd apps/streamdeck-plugin
+pnpm build                                                  # -> bin/plugin.js
+pnpm dlx @elgato/cli link com.aiengineering.monitor.sdPlugin   # dev install
+pnpm dlx @elgato/cli pack com.aiengineering.monitor.sdPlugin   # -> .streamDeckPlugin
+```
+Add icon assets under `com.aiengineering.monitor.sdPlugin/imgs/` (paths referenced by the
+manifest). The Hub must be running (`http://127.0.0.1:47800`).
 
-## Using the Metrics in the Stream Deck UI
-
-- The UI receives the `agentMetrics` object via the SDK.
-- Map each `agent` to a button or display element.
-- Show `tokensUsed` and `tokensSaved` values, optionally with progress bars or icons.
-
-## Testing the Plugin
-
-- Start the backend: `cargo run`.
-- Run the frontend dev server: `pnpm -C apps/ai-engineering-hub/src/frontend dev`.
-- Verify the WebSocket connection by opening the browser console and ensuring `window.sendToPropertyInspector` receives `agentMetrics` messages.
-- In the Stream Deck software, add the plugin action to a button and confirm the displayed values update in real time.
-
-## Notes
-
-- No direct DB access is performed; all data flows through the Hub's WebSocket.
-- Extend the `normalizeAgentMetrics` function in `streamdeck.ts` if the backend payload structure changes.
+## Adding a monitor
+Use `/add-monitor` (agent `streamdeck-plugin-expert`, skill `streamdeck-standards`): add an
+action to `manifest.json` and a `MetricMonitor` subclass in `actions.ts`. Keep it Hub-only.

@@ -6,7 +6,7 @@ import {
   type IngestRequest,
   type IngestResponse,
   type SetSourceEnabledResponse,
-} from "@shared-api-contracts";
+} from "shared-api-contracts";
 import type {
   Agent,
   AnalyticsMetrics,
@@ -15,8 +15,8 @@ import type {
   Session,
   Source,
   Task,
-} from "@shared-types";
-import type { EventEnvelope, HubEvent } from "@shared-events";
+} from "shared-types";
+import type { EventEnvelope, HubEvent } from "shared-events";
 
 export const DEFAULT_HUB_PORT = 47800;
 

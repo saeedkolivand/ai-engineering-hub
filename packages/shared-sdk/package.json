@@ -7,5 +7,10 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "shared-api-contracts": "workspace:*",
+    "shared-events": "workspace:*",
+    "shared-types": "workspace:*"
   }
 }

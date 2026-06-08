@@ -1,37 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { api } from "./client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { hub } from "../lib/hub";
+import * as q from "../lib/queries";
 
-export function useRepositories() {
-  return useQuery({
-    queryKey: ["repositories"],
-    queryFn: api.getRepositories,
-  });
-}
+export const useRepositories = () => useQuery(q.repositoriesQuery());
+export const useRepository = (id: string) => useQuery(q.repositoryQuery(id));
+export const useSessions = (repositoryId?: string) => useQuery(q.sessionsQuery(repositoryId));
+export const useTasks = (sessionId?: string) => useQuery(q.tasksQuery(sessionId));
+export const useAgents = () => useQuery(q.agentsQuery());
+export const useSources = () => useQuery(q.sourcesQuery());
+export const useAnalytics = () => useQuery(q.analyticsQuery());
+export const useIntelligence = () => useQuery(q.intelligenceQuery());
 
-export function useSessions() {
-  return useQuery({
-    queryKey: ["sessions"],
-    queryFn: api.getSessions,
+export const useSetSourceEnabled = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
+      hub.setSourceEnabled(id, enabled),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sources"] }),
   });
-}
-
-export function useTasks() {
-  return useQuery({
-    queryKey: ["tasks"],
-    queryFn: api.getTasks,
-  });
-}
-
-export function useAgents() {
-  return useQuery({
-    queryKey: ["agents"],
-    queryFn: api.getAgents,
-  });
-}
-
-export function useAnalytics() {
-  return useQuery({
-    queryKey: ["analytics"],
-    queryFn: api.getAnalytics,
-  });
-}
+};

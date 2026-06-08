@@ -1,69 +1,41 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  createColumnHelper,
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  flexRender,
-} from '@tanstack/react-table';
-import { fetchSessions } from '../../api';
-import { Session } from '@shared-types';
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { Session } from "shared-types";
+import { DataTable } from "../components/DataTable";
+import { useSessions } from "../api/hooks";
+import { sessionsQuery } from "../lib/queries";
+import { setSelection } from "../lib/store";
+import { shortTime } from "../lib/format";
 
-const columnHelper = createColumnHelper<Session>();
+export const Route = createFileRoute("/sessions")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(sessionsQuery()),
+  component: Sessions,
+});
 
-const columns = [
-  columnHelper.accessor('id', { header: () => 'ID' }),
-  columnHelper.accessor('repository_id', { header: () => 'Repository' }),
-  columnHelper.accessor('started_at', { header: () => 'Started At' }),
-  columnHelper.accessor('ended_at', { header: () => 'Ended At' }),
-];
+function Sessions() {
+  const { data } = useSessions();
+  const navigate = useNavigate();
 
-export function Sessions() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['sessions'],
-    queryFn: fetchSessions,
-  });
-
-  const table = useReactTable({
-    data: data?.sessions ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
-
-  if (isLoading) return <div>Loading sessions…</div>;
-  if (error) return <div>Error loading sessions.</div>;
+  const columns: ColumnDef<Session, any>[] = [
+    { accessorKey: "id", header: "Session", cell: (c) => (c.getValue() as string).slice(0, 8) },
+    { accessorKey: "repository_id", header: "Repository", cell: (c) => (c.getValue() as string).slice(0, 8) },
+    { accessorKey: "status", header: "Status" },
+    { accessorKey: "start_time", header: "Started", cell: (c) => shortTime(c.getValue() as string) },
+  ];
 
   return (
     <div>
-      <h2>Sessions</h2>
-      <table>
-        <thead>
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <th key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h1 className="page-title">Sessions</h1>
+      <DataTable
+        data={data ?? []}
+        columns={columns}
+        searchPlaceholder="Filter sessions…"
+        empty="No sessions yet."
+        onRowClick={(s) => {
+          setSelection({ kind: "session", id: s.id, label: s.status, meta: { repository: s.repository_id, status: s.status } });
+          navigate({ to: "/sessions/$sessionId", params: { sessionId: s.id } });
+        }}
+      />
     </div>
   );
 }

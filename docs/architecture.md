@@ -1,27 +1,35 @@
 # Architecture Overview
 
-The **AI Engineering Hub** is a single‑process Tauri v2 application written in Rust with a React + TypeScript frontend.
+The **AI Engineering Hub** is a single-process Tauri v2 desktop app (Rust) with a React +
+TanStack frontend, plus a companion Elgato Stream Deck plugin. All Hub functionality runs in
+one process; the only separate app is the plugin (launched by the Stream Deck software).
 
-## Core Components
+## Core components
 
-| Layer | Technology | Responsibility |
-|-------|------------|----------------|
-| **Backend** | Rust (Axum, Tokio, SQLx, Tauri) | HTTP API, WebSocket streams, metrics collector, SQLite persistence |
-| **Frontend** | React, TypeScript, TanStack suite | UI, routing, data fetching, virtualized tables, command palette |
-| **Desktop Shell** | Tauri v2 | Bundles backend + frontend, provides native APIs |
-| **Stream Deck Plugin** | Rust (Tauri) | Consumes Hub APIs via IPC, displays live metrics on a Stream Deck |
+| Layer | Technology | Responsibility | Location |
+| --- | --- | --- | --- |
+| Core | Rust · Axum · Tokio · SQLx · SQLite | HTTP/WS API, dynamic ingestion, analytics, intelligence | `apps/ai-engineering-hub/core` (`aeh-core`) |
+| Desktop shell | Tauri v2 | Owns the process; spawns the core server in `setup()` | `apps/ai-engineering-hub/src-tauri` |
+| Frontend | React · TanStack Router/Query/Table/Virtual/Form/Store | Three-panel operational UI | `apps/ai-engineering-hub/src/frontend` |
+| Plugin | Elgato SDK v2 (Node) | 9 monitors consuming the Hub via shared-sdk | `apps/streamdeck-plugin` |
+| Shared | TS + Rust contracts, SDK, tokens | Single source of truth | `packages/*` |
 
-## Data Flow
+## Data flow
+1. **Ingestion** (HTTP push `/api/v1/ingest`, file watcher, manual import) writes canonical
+   `EventEnvelope`s to `raw_events`; unknown tools auto-register in the `sources` registry.
+2. The **Axum server** (inside Tauri, `127.0.0.1:47800`) serves REST + a `/ws/events`
+   broadcast. Ingested events are fanned out live.
+3. The **frontend** and **plugin** both consume that one API (frontend via TanStack Query,
+   plugin via the `shared-sdk` HubClient).
 
-1. **Metrics Collector** watches a `metrics/` folder, parses JSON logs and writes to SQLite.  
-2. **Backend** serves REST endpoints and a WebSocket (`/ws/metrics`) that streams live events.  
-3. **Frontend** uses TanStack Query to fetch data and TanStack Table to render large tables efficiently.  
-4. **Stream Deck Plugin** invokes Tauri commands to fetch the latest metrics and renders them on a hardware device.
+## Design principles
+- **Dynamic, not hardcoded** — sources/tools are registry rows + capabilities + mapping
+  rules; the 7 named tools are seed presets.
+- **DDD / bounded contexts** — `ingestion`, `analytics`, `intelligence`, `realtime` modules;
+  repository-pattern data access; thin service layer; DI via `AppState`.
+- **Clean separation** — the Tauri-free `aeh-core` crate holds all logic; the shell is thin.
+- **Single source of truth** — contracts in `packages/*` (TS↔Rust parity).
+- **Observability** — `tracing` spans; typed errors.
 
-## Design Principles
-
-- **Domain‑Driven Design** – Separate bounded contexts for metrics, analytics, repository intelligence.  
-- **Clean Architecture** – `src/models`, `src/repository`, `src/service` layers with clearly defined boundaries.  
-- **Event‑Driven** – Collector emits events via a broadcast channel consumed by WebSocket and UI.  
-- **Observability** – Tracing with `tracing`/`tracing‑subscriber`.  
-- **Testing** – Unit & integration tests for DB layer, API routes, and collector logic.
+See [domain_model.md](../design/domain_model.md), [component_architecture.md](../design/component_architecture.md),
+[database.md](database.md), [api.md](api.md), [design-system.md](design-system.md).
