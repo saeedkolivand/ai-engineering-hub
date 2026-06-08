@@ -40,6 +40,9 @@
         "https://github.com/saeedkolivand/ai-engineering-hub/releases/latest/download/latest.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhDMDFCQUIzRDE5MjQxQkQKUldTOVFaTFJzN29CakNZMTFFUUtXUUFrUFpQSmRXK3h2VzQ3MzdlM3hmRHBBQjRqR2N6NzlpM2oK"
+    },
+    "deep-link": {
+      "schemes": ["aeh"]
     }
   }
 }

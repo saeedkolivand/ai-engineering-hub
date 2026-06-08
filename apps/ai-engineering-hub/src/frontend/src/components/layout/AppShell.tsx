@@ -1,10 +1,19 @@
+import { useEffect } from "react";
 import { Outlet } from "@tanstack/react-router";
 import { NavBar } from "./NavBar";
 import { RightPanel } from "./RightPanel";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { CommandPalette } from "./CommandPalette";
+import { registerGlobalShortcuts, unregisterGlobalShortcuts } from "../../lib/shortcuts";
 
 export function AppShell() {
+  useEffect(() => {
+    void registerGlobalShortcuts();
+    return () => {
+      void unregisterGlobalShortcuts();
+    };
+  }, []);
+
   return (
     <div className="shell">
       <NavBar />

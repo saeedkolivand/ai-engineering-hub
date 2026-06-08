@@ -14,6 +14,18 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
+        // Registered for future use; all current DB access goes through the Hub's
+        // Axum API (aeh-core / SQLx), not via this plugin.
+        .plugin(tauri_plugin_sql::Builder::default().build())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_autostart::init())
         .setup(|app| {
             // Resolve a writable DB path under the app data dir.
             let db_path = app

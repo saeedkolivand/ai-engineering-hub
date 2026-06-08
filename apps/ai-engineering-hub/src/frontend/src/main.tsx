@@ -36,6 +36,32 @@ declare module "@tanstack/react-router" {
   }
 }
 
+// Deep-link handler: aeh://session/<id>, aeh://repository/<id>, etc.
+if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+  void import("@tauri-apps/plugin-deep-link").then(({ onOpenUrl }) => {
+    onOpenUrl((urls: string[]) => {
+      for (const raw of urls) {
+        try {
+          const url = new URL(raw);
+          // scheme: aeh  host: entity-type  pathname: /id
+          const kind = url.hostname; // e.g. "session", "repository", "task"
+          const id = url.pathname.replace(/^\//, "");
+          const map: Record<string, string> = {
+            session: `/sessions/${id}`,
+            repository: `/repositories/${id}`,
+            task: `/tasks/${id}`,
+            agent: `/agents/${id}`,
+          };
+          const path = map[kind];
+          if (path) void router.navigate({ to: path as any });
+        } catch {
+          // malformed deep link — ignore
+        }
+      }
+    });
+  });
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

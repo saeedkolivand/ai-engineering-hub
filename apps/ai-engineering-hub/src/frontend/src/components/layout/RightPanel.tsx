@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { clearSelection, useSelection } from "../../lib/store";
+import { CopyButton } from "../CopyButton";
 
 /** Context panel: metadata + related entities + quick actions for the current selection. */
 export function RightPanel() {
@@ -44,6 +45,7 @@ export function RightPanel() {
             Open {sel.kind}
           </button>
         )}
+        {sel.id && <CopyButton text={sel.id} label="Copy ID" />}
         <button className="btn subtle" onClick={clearSelection}>
           Clear selection
         </button>
