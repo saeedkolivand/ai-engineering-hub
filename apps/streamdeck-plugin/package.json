@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "watch": "tsup --watch"
+    "watch": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "sd:validate": "streamdeck validate com.aiengineering.monitor.sdPlugin",
+    "sd:pack": "tsup && streamdeck pack com.aiengineering.monitor.sdPlugin --force",
+    "sd:link": "streamdeck link com.aiengineering.monitor.sdPlugin"
   },
   "dependencies": {
     "@elgato/streamdeck": "^2.1.0",
@@ -14,6 +18,7 @@
     "shared-types": "workspace:*"
   },
   "devDependencies": {
+    "@elgato/cli": "^1.7.4",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   }

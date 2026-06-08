@@ -1,19 +1,30 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Name": "AI Engineering Monitor",
-  "Version": "0.1.0",
+  "Version": "0.1.0.0",
   "Author": "AI Engineering Hub",
   "Description": "Live AI engineering metrics streamed from the AI Engineering Hub local API.",
-  "Category": "AI Engineering Hub",
+  "Category": "AI Engineering Monitor",
   "Icon": "imgs/plugin/marketplace",
   "URL": "https://github.com/saeedkolivand/ai-engineering-hub",
   "SDKVersion": 2,
-  "Software": { "MinimumVersion": "6.5" },
+  "Software": {
+    "MinimumVersion": "6.5"
+  },
   "OS": [
-    { "Platform": "windows", "MinimumVersion": "10" },
-    { "Platform": "mac", "MinimumVersion": "12" }
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    },
+    {
+      "Platform": "mac",
+      "MinimumVersion": "12"
+    }
   ],
-  "Nodejs": { "Version": "20", "Debug": "enabled" },
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
   "CodePath": "bin/plugin.js",
   "UUID": "com.aiengineering.monitor",
   "Actions": [
@@ -22,72 +33,135 @@
       "UUID": "com.aiengineering.monitor.token",
       "Icon": "imgs/actions/token/icon",
       "Tooltip": "Monthly token usage across all sources",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/token/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/token/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Savings Monitor",
       "UUID": "com.aiengineering.monitor.savings",
       "Icon": "imgs/actions/savings/icon",
       "Tooltip": "Total token savings across savings-capable sources",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/savings/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/savings/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Agent Monitor",
       "UUID": "com.aiengineering.monitor.agent",
       "Icon": "imgs/actions/agent/icon",
       "Tooltip": "Top agent by token usage",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/agent/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/agent/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Task Monitor",
       "UUID": "com.aiengineering.monitor.task",
       "Icon": "imgs/actions/task/icon",
       "Tooltip": "Task completion rate",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/task/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/task/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Intervention Monitor",
       "UUID": "com.aiengineering.monitor.intervention",
       "Icon": "imgs/actions/intervention/icon",
       "Tooltip": "Human intervention rate",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/intervention/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/intervention/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Productivity Monitor",
       "UUID": "com.aiengineering.monitor.productivity",
       "Icon": "imgs/actions/productivity/icon",
       "Tooltip": "First-pass success rate",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/productivity/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/productivity/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Build Health Monitor",
       "UUID": "com.aiengineering.monitor.build",
       "Icon": "imgs/actions/build/icon",
       "Tooltip": "Build success rate",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/build/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/build/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Retrieval Monitor",
       "UUID": "com.aiengineering.monitor.retrieval",
       "Icon": "imgs/actions/retrieval/icon",
       "Tooltip": "Retrieval accuracy",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/retrieval/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/retrieval/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     },
     {
       "Name": "Context Health Monitor",
       "UUID": "com.aiengineering.monitor.context",
       "Icon": "imgs/actions/context/icon",
       "Tooltip": "Context stability (inverse retry rate)",
-      "Controllers": ["Keypad"],
-      "States": [{ "Image": "imgs/actions/context/key", "TitleAlignment": "middle" }]
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/context/key",
+          "TitleAlignment": "middle"
+        }
+      ]
     }
   ]
 }

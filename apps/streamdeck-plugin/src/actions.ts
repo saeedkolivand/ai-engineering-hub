@@ -12,7 +12,8 @@ const POLL_MS = 5000;
 
 const compact = (n: number): string =>
   Math.abs(n) >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${Math.round(n)}`;
-const pct = (n: number): string => `${n.toFixed(0)}%`;
+// Rate metrics are nullable — "—" means no connected tool reports that signal yet.
+const pct = (n: number | null | undefined): string => (n == null ? "—" : `${n.toFixed(0)}%`);
 
 /**
  * Base monitor: polls the Hub analytics endpoint on an interval and renders a key
@@ -34,7 +35,7 @@ abstract class MetricMonitor extends SingletonAction {
     this.#timers.delete(ev.action.id);
   }
 
-  private async refresh(ev: WillAppearEvent | WillDisappearEvent): Promise<void> {
+  private async refresh(ev: WillAppearEvent): Promise<void> {
     if (!ev.action.isKey()) return;
     try {
       const a = await hub.analytics();
@@ -90,14 +91,16 @@ export class BuildHealthMonitor extends MetricMonitor {
 @action({ UUID: `${UUID}.retrieval` })
 export class RetrievalMonitor extends MetricMonitor {
   protected label = "Retrieval";
-  protected render = (a: AnalyticsMetrics) => pct(a.retrieval.accuracy * 100);
+  protected render = (a: AnalyticsMetrics) =>
+    a.retrieval.accuracy == null ? "—" : pct(a.retrieval.accuracy * 100);
 }
 
 @action({ UUID: `${UUID}.context` })
 export class ContextHealthMonitor extends MetricMonitor {
   protected label = "Context";
   // Context stability proxy: inverse of the retry rate.
-  protected render = (a: AnalyticsMetrics) => pct(100 - a.productivity.retry_rate);
+  protected render = (a: AnalyticsMetrics) =>
+    a.productivity.retry_rate == null ? "—" : pct(100 - a.productivity.retry_rate);
 }
 
 export const allActions = [

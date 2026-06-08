@@ -53,17 +53,16 @@ App icons live in `src-tauri/icons/` (already committed: `32x32.png`, `128x128.p
 `128x128@2x.png`, `icon.ico`). Regenerate with `pnpm tauri icon <path-to-1024px.png>`.
 
 ## Stream Deck plugin
+The Elgato CLI (`@elgato/cli`) is a devDependency, and icons are committed under
+`com.aiengineering.monitor.sdPlugin/imgs/`. From `apps/streamdeck-plugin`:
 ```
-cd apps/streamdeck-plugin
-pnpm build      # tsup -> com.aiengineering.monitor.sdPlugin/bin/plugin.js
+pnpm build         # tsup -> com.aiengineering.monitor.sdPlugin/bin/plugin.js (self-contained)
+pnpm sd:validate   # validate the manifest + assets
+pnpm sd:pack       # -> com.aiengineering.monitor.streamDeckPlugin (installable bundle)
+pnpm sd:link       # dev-install into the Stream Deck app
 ```
-Add icon assets under `com.aiengineering.monitor.sdPlugin/imgs/` (referenced by the manifest),
-then package/install with the Elgato CLI:
-```
-pnpm dlx @elgato/cli pack com.aiengineering.monitor.sdPlugin    # -> .streamDeckPlugin
-pnpm dlx @elgato/cli link com.aiengineering.monitor.sdPlugin    # dev install
-```
-The plugin requires the Hub to be running (it reads `http://127.0.0.1:47800`).
+Install by double-clicking the generated `.streamDeckPlugin`, or use `pnpm sd:link`. The plugin
+requires the Hub to be running (it reads `http://127.0.0.1:47800`).
 
 ## CI
 `.github/workflows/ci.yml` builds the Rust workspace and the JS workspaces. Automated tests
