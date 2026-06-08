@@ -2,49 +2,104 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: windows-latest
-
+  # ── Rust core: build the Tauri-free crate + run the logic smoke check ──────────
+  rust:
+    name: Rust core
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Format check
+        run: cargo fmt --all --check
+      - name: Build core (excludes the Tauri shell — built in the app job)
+        run: cargo build --workspace --exclude ai-engineering-hub-tauri
+      - name: Clippy (core)
+        run: cargo clippy -p aeh-core --all-targets
+      - name: Smoke check
+        run: cargo run -p aeh-core --example smoke
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+  # ── Frontend + Stream Deck plugin: typecheck, build, validate, package ─────────
+  web:
+    name: Frontend & plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck frontend
+        run: pnpm --filter ai-engineering-hub-frontend exec tsc --noEmit
+      - name: Build frontend
+        run: pnpm --filter ai-engineering-hub-frontend build
+      - name: Typecheck plugin
+        run: pnpm --filter ai-engineering-monitor-plugin exec tsc --noEmit
+      - name: Build plugin bundle
+        run: pnpm --filter ai-engineering-monitor-plugin build
+      - name: Validate plugin manifest + assets
+        run: pnpm --filter ai-engineering-monitor-plugin run sd:validate
+      - name: Package plugin
+        run: pnpm --filter ai-engineering-monitor-plugin run sd:pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: streamdeck-plugin
+          path: apps/streamdeck-plugin/*.streamDeckPlugin
+          if-no-files-found: error
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install front‑end dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Tauri backend
-        run: cargo build --release
-
-      - name: Build Front‑end
-        run: pnpm --filter ai-engineering-hub... run build
-
-      - name: Run Rust unit tests
-        run: cargo test --workspace
-
-      - name: Run Front‑end tests
-        run: pnpm --filter ai-engineering-hub... run test
-
-      - name: Package Stream Deck plugin
+  # ── Desktop app installers for every platform ────────────────────────────────
+  app:
+    name: Desktop app (${{ matrix.os }})
+    needs: [rust, web]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux build dependencies
+        if: matrix.os == 'ubuntu-22.04'
         run: |
-          cd apps/streamdeck-plugin
-          ./build.sh
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build desktop app (Tauri bundles)
+        run: pnpm app:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hub-${{ matrix.os }}
+          path: |
+            target/release/bundle/**/*.msi
+            target/release/bundle/**/*.exe
+            target/release/bundle/**/*.dmg
+            target/release/bundle/**/*.app
+            target/release/bundle/**/*.AppImage
+            target/release/bundle/**/*.deb
+            target/release/bundle/**/*.rpm
+          if-no-files-found: ignore

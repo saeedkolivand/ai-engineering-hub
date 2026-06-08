@@ -33,26 +33,36 @@ impl Cline {
     }
 
     pub async fn collect(&self) -> AppResult<Vec<CollectedEvent>> {
-        let Some(root) = self.tasks_dir.as_ref() else { return Ok(vec![]) };
+        let Some(root) = self.tasks_dir.as_ref() else {
+            return Ok(vec![]);
+        };
         if !root.exists() {
             return Ok(vec![]);
         }
 
         let mut out = Vec::new();
         let mut seen = self.seen.lock().await;
-        let Ok(mut rd) = tokio::fs::read_dir(root).await else { return Ok(vec![]) };
+        let Ok(mut rd) = tokio::fs::read_dir(root).await else {
+            return Ok(vec![]);
+        };
         while let Ok(Some(entry)) = rd.next_entry().await {
             let task_id = entry.file_name().to_string_lossy().into_owned();
             let file = entry.path().join("ui_messages.json");
-            let Ok(meta) = tokio::fs::metadata(&file).await else { continue };
+            let Ok(meta) = tokio::fs::metadata(&file).await else {
+                continue;
+            };
             let mtime = meta.modified().unwrap_or(SystemTime::UNIX_EPOCH);
             if seen.get(&file).copied() == Some(mtime) {
                 continue; // unchanged since last poll
             }
             seen.insert(file.clone(), mtime);
 
-            let Ok(content) = tokio::fs::read_to_string(&file).await else { continue };
-            let Ok(Value::Array(msgs)) = serde_json::from_str::<Value>(&content) else { continue };
+            let Ok(content) = tokio::fs::read_to_string(&file).await else {
+                continue;
+            };
+            let Ok(Value::Array(msgs)) = serde_json::from_str::<Value>(&content) else {
+                continue;
+            };
             for m in &msgs {
                 if let Some(ev) = parse_msg(&task_id, m) {
                     out.push(ev);
@@ -80,7 +90,10 @@ fn parse_msg(task_id: &str, m: &Value) -> Option<CollectedEvent> {
         return None;
     }
     let cost = info.get("cost").and_then(Value::as_f64).unwrap_or(0.0);
-    let ts = Utc.timestamp_millis_opt(ts_ms).single().unwrap_or_else(Utc::now);
+    let ts = Utc
+        .timestamp_millis_opt(ts_ms)
+        .single()
+        .unwrap_or_else(Utc::now);
 
     // Cline doesn't reliably record the workspace path, and FKs are enforced, so we
     // don't fabricate a session/repo row. The task id lives in the payload for grouping;

@@ -33,8 +33,20 @@ fn is_retrieval(cmd: &str) -> bool {
     let verb = verb.rsplit(['/', '\\']).next().unwrap_or(verb);
     matches!(
         verb,
-        "rg" | "grep" | "egrep" | "fgrep" | "ag" | "find" | "fd" | "ls" | "tree" | "cat"
-            | "bat" | "head" | "tail" | "wc" | "glob"
+        "rg" | "grep"
+            | "egrep"
+            | "fgrep"
+            | "ag"
+            | "find"
+            | "fd"
+            | "ls"
+            | "tree"
+            | "cat"
+            | "bat"
+            | "head"
+            | "tail"
+            | "wc"
+            | "glob"
     )
 }
 
@@ -54,7 +66,9 @@ impl Rtk {
     }
 
     pub async fn collect(&self) -> AppResult<Vec<CollectedEvent>> {
-        let Some(path) = self.db_path.as_ref() else { return Ok(vec![]) };
+        let Some(path) = self.db_path.as_ref() else {
+            return Ok(vec![]);
+        };
         if !path.exists() {
             return Ok(vec![]);
         }
@@ -113,7 +127,10 @@ impl Rtk {
                     source: "rtk".into(),
                     event_type: "savings".into(),
                     timestamp: ts,
-                    refs: EntityRefs { repository_id: repository_id.clone(), ..Default::default() },
+                    refs: EntityRefs {
+                        repository_id: repository_id.clone(),
+                        ..Default::default()
+                    },
                     payload: json!({
                         "savings": r.saved_tokens,
                         "input_tokens": r.input_tokens,
@@ -135,7 +152,10 @@ impl Rtk {
                         source: "rtk".into(),
                         event_type: "retrieval".into(),
                         timestamp: ts,
-                        refs: EntityRefs { repository_id, ..Default::default() },
+                        refs: EntityRefs {
+                            repository_id,
+                            ..Default::default()
+                        },
                         payload: json!({
                             "latency": r.exec_time_ms,
                             "savings": r.saved_tokens,

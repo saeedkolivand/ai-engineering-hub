@@ -79,10 +79,18 @@ impl SourceAdapter for ConfigurableAdapter {
         }
 
         let refs = EntityRefs {
-            repository_id: self.extract(raw, "repository_id").and_then(|v| v.as_str().map(String::from)),
-            session_id: self.extract(raw, "session_id").and_then(|v| v.as_str().map(String::from)),
-            task_id: self.extract(raw, "task_id").and_then(|v| v.as_str().map(String::from)),
-            agent_id: self.extract(raw, "agent_id").and_then(|v| v.as_str().map(String::from)),
+            repository_id: self
+                .extract(raw, "repository_id")
+                .and_then(|v| v.as_str().map(String::from)),
+            session_id: self
+                .extract(raw, "session_id")
+                .and_then(|v| v.as_str().map(String::from)),
+            task_id: self
+                .extract(raw, "task_id")
+                .and_then(|v| v.as_str().map(String::from)),
+            agent_id: self
+                .extract(raw, "agent_id")
+                .and_then(|v| v.as_str().map(String::from)),
         };
 
         vec![EventEnvelope {

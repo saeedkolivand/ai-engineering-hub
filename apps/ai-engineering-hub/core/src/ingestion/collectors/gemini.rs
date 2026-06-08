@@ -25,11 +25,16 @@ impl Gemini {
     }
 
     pub async fn collect(&self) -> AppResult<Vec<CollectedEvent>> {
-        let Some(path) = self.log_path.as_ref() else { return Ok(vec![]) };
+        let Some(path) = self.log_path.as_ref() else {
+            return Ok(vec![]);
+        };
         if !path.exists() {
             return Ok(vec![]);
         }
-        let len = tokio::fs::metadata(path).await.map(|m| m.len()).unwrap_or(0);
+        let len = tokio::fs::metadata(path)
+            .await
+            .map(|m| m.len())
+            .unwrap_or(0);
         let start = self.offset.load(Ordering::Relaxed);
         if len <= start {
             return Ok(vec![]);

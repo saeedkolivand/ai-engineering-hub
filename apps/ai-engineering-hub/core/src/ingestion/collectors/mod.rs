@@ -37,10 +37,28 @@ pub struct CollectedEvent {
 
 /// Entity rows a collector wants to exist (idempotent inserts).
 pub enum Upsert {
-    Repository { id: String, name: String, path: String },
-    Session { id: String, repository_id: String, start_time: String },
-    Task { id: String, session_id: String, description: String, started_at: String },
-    Agent { id: String, name: String, provider: String, model_id: Option<String> },
+    Repository {
+        id: String,
+        name: String,
+        path: String,
+    },
+    Session {
+        id: String,
+        repository_id: String,
+        start_time: String,
+    },
+    Task {
+        id: String,
+        session_id: String,
+        description: String,
+        started_at: String,
+    },
+    Agent {
+        id: String,
+        name: String,
+        provider: String,
+        model_id: Option<String>,
+    },
 }
 
 impl Upsert {
@@ -54,7 +72,11 @@ impl Upsert {
                     .execute(pool)
                     .await?;
             }
-            Upsert::Session { id, repository_id, start_time } => {
+            Upsert::Session {
+                id,
+                repository_id,
+                start_time,
+            } => {
                 sqlx::query(
                     "INSERT OR IGNORE INTO sessions (id, repository_id, start_time, status) VALUES (?, ?, ?, 'active')",
                 )
@@ -64,7 +86,12 @@ impl Upsert {
                 .execute(pool)
                 .await?;
             }
-            Upsert::Task { id, session_id, description, started_at } => {
+            Upsert::Task {
+                id,
+                session_id,
+                description,
+                started_at,
+            } => {
                 sqlx::query(
                     "INSERT OR IGNORE INTO tasks (id, session_id, description, status, started_at) VALUES (?, ?, ?, 'completed', ?)",
                 )
@@ -75,7 +102,12 @@ impl Upsert {
                 .execute(pool)
                 .await?;
             }
-            Upsert::Agent { id, name, provider, model_id } => {
+            Upsert::Agent {
+                id,
+                name,
+                provider,
+                model_id,
+            } => {
                 sqlx::query("INSERT OR IGNORE INTO agents (id, name, provider, model_id) VALUES (?, ?, ?, ?)")
                     .bind(id)
                     .bind(name)
@@ -209,7 +241,11 @@ async fn run_one(state: &SharedState, key: &str, collected: AppResult<Vec<Collec
 }
 
 /// Persist a collector's events idempotently and broadcast the new ones.
-async fn apply(state: &SharedState, source_key: &str, events: Vec<CollectedEvent>) -> AppResult<usize> {
+async fn apply(
+    state: &SharedState,
+    source_key: &str,
+    events: Vec<CollectedEvent>,
+) -> AppResult<usize> {
     let source_id = sources::resolve(&state.pool, source_key).await?;
     let mut new = 0i64;
     for ce in events {

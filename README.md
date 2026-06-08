@@ -1,63 +1,163 @@
+<div align="center">
+
 # AI Engineering Hub
 
-A production-grade **AI Engineering Operations Platform**: a single Tauri v2 desktop app that
-ingests metrics from any AI dev tool, computes analytics + repository intelligence, and serves
-a local API/WebSocket consumed by its own React UI and a companion Stream Deck plugin.
+**An operations platform for your AI coding toolchain.**
+Ingests metrics from any AI dev tool, computes analytics + repository intelligence, and serves a
+local API/WebSocket — consumed by its own desktop UI and a companion Stream Deck plugin.
 
-Target feel: GitHub / Linear / Datadog density with Apple-grade restraint — an operational
-tool, not a dashboard.
+[![CI](https://github.com/saeedkolivand/ai-engineering-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/saeedkolivand/ai-engineering-hub/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0066cc.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.96-000000?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
+[![React 19](https://img.shields.io/badge/React-19-20232a?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-0066cc.svg)](CONTRIBUTING.md)
 
-## What it does
-- **Metrics collector** — source-agnostic ingestion (HTTP push, file watcher, manual import).
-  Tools are **data, not code**: the named tools (Claude Code, OpenCode, Cline, Gemini CLI,
-  RTK, Graphify, CodeGraph) ship as presets; any other tool auto-registers on first event.
-- **Analytics engine** — tokens, savings, productivity, quality, retrieval — all dimensional
-  (group by source / provider / agent / repository).
-- **Repository intelligence** — intervention/retry hotspots, expensive agents, retrieval
-  bottlenecks.
-- **Operational UI** — three-panel layout, 10-item nav, drill-down (repo → session → task →
-  agent), tables-first, Ctrl/Cmd-K command palette, live activity feed.
-- **Stream Deck plugin** — 9 monitors (incl. Context Health) consuming the Hub.
+[Getting started](docs/getting-started.md) · [Documentation](docs/README.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Contributing](CONTRIBUTING.md)
 
-## Stack
-- Backend: Rust · Tauri v2 · Tokio · Axum · SQLx · SQLite (single process; Axum runs inside Tauri).
-- Frontend: React · TypeScript · TanStack Router/Query/Table/Virtual/Form/Store.
-- Plugin: Elgato Stream Deck SDK v2.
-- Shared: `packages/shared-{types,events,api-contracts,sdk,design-tokens}` (TS↔Rust parity).
+</div>
 
-## Layout
+---
+
+## What is this?
+
+You run a fleet of AI coding tools — Claude Code, Cline, OpenCode, RTK, Graphify, and whatever
+else. Each one quietly accumulates usage, savings, and quality signals in its own local format,
+and none of them talk to each other. **AI Engineering Hub** is the single pane of glass over all
+of them.
+
+It's a **local-first desktop app** (one Tauri process) that:
+
+- **Collects** metrics from each tool's own data store — no manual instrumentation.
+- **Computes** dimensional analytics (tokens, savings, productivity, quality, retrieval) and
+  repository intelligence (hotspots, expensive agents, retrieval bottlenecks).
+- **Serves** a fixed local API + WebSocket (`127.0.0.1:47800`) that powers both the desktop UI
+  and an Elgato Stream Deck plugin.
+
+> **Design bar:** GitHub / Linear / Datadog density with Apple-grade restraint — an operational
+> tool, not a KPI marketing dashboard.
+
+## Highlights
+
+- 🔌 **Dynamic sources, zero recompile.** Tools are rows in a registry, not a hardcoded enum.
+  Built-in collectors ship for the popular tools; unknown tools auto-register and can be mapped
+  from the UI or fed over HTTP. → [Integrations](docs/integrations.md)
+- 📊 **Dimensional analytics.** Every metric groups by `source` / `provider` / `agent` /
+  `repository`. Rates that no tool reports show "—" (honest), never a fake `0%`. → [Analytics](docs/analytics.md)
+- 🧭 **Drill-down everywhere.** Repository → Session → Task → Agent, tables-first, with a
+  `⌘/Ctrl-K` command palette and a live activity feed.
+- 🎛️ **Stream Deck plugin.** 9 hardware monitors driven by the same API — no log parsing, no DB
+  access. → [Stream Deck](docs/streamdeck.md)
+- 🎨 **Apple-derived design system** with light / dark / system theming, shipped as shared
+  tokens. → [Design system](docs/design-system.md)
+- 🦀 **One process, no sidecars.** Rust core (Axum + SQLx + SQLite) runs inside Tauri; the
+  frontend is embedded. Nothing else to deploy.
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  subgraph tools["Your AI toolchain (local data)"]
+    cc["Claude Code<br/>JSONL"]; rtk["RTK<br/>SQLite"]; oc["OpenCode<br/>SQLite"]; cl["Cline<br/>JSON"]
+  end
+  subgraph hub["Single Tauri process"]
+    col["Collectors<br/>(poll · dedup · backfill)"]
+    db[("SQLite<br/>raw_events + registry")]
+    an["Analytics + Intelligence"]
+    api["Axum REST + WS<br/>127.0.0.1:47800"]
+    col --> db --> an --> api
+  end
+  ui["Desktop UI<br/>(React · TanStack)"]
+  sd["Stream Deck plugin<br/>(shared-sdk)"]
+  tools --> col
+  api --> ui
+  api --> sd
 ```
-apps/ai-engineering-hub/{core, src-tauri, src/frontend}
-apps/streamdeck-plugin
-packages/shared-{types,events,api-contracts,sdk,design-tokens}
-```
+
+Tools write to their own stores → collectors normalize them into `raw_events` → analytics serve
+the API → the UI and plugin consume it. See [docs/architecture.md](docs/architecture.md) for the
+full picture and the design decisions behind it.
 
 ## Quick start
-```
+
+**Prerequisites:** Rust (stable), Node 20+, [pnpm](https://pnpm.io/) 11. (On Windows you also
+need WebView2 + MSVC Build Tools — both standard.)
+
+```bash
 pnpm install
-pnpm app:dev    # integrated desktop app — one process (UI + Hub API + collectors)
+pnpm app:dev      # the full desktop app: UI + Hub API + collectors, one process
 ```
-`pnpm app:dev` runs the real Tauri app: the Axum server and the ingestion collectors start
-in-process, so enabling an integration immediately reads that tool's local data.
 
-For **browser-only** UI dev you instead run two processes (the API normally lives inside the
-Tauri app, so `pnpm dev` alone shows "Failed to fetch"):
+Enable your tools under **Integrations**, and data flows in within ~5s. Prefer the browser for
+UI work? Run the API and UI separately:
+
+```bash
+pnpm dev:hub      # terminal 1 — Hub API on 127.0.0.1:47800
+pnpm dev          # terminal 2 — Vite UI on :5173
 ```
-pnpm dev:hub    # terminal 1 — Hub API on 127.0.0.1:47800
-pnpm dev        # terminal 2 — Vite UI on :5173
+
+Full walkthrough → [docs/getting-started.md](docs/getting-started.md).
+
+## Project layout
+
 ```
-Backend-only smoke check: `cargo run -p aeh-core --example smoke`.
-Release installer: `pnpm app:build`. See [docs/deployment.md](docs/deployment.md) for details,
-and [docs/integrations.md](docs/integrations.md) for how each tool's data is collected.
+apps/
+  ai-engineering-hub/
+    core/          Rust core (Tauri-free): Axum, SQLx/SQLite, ingestion, analytics, intelligence
+    src-tauri/     Tauri v2 shell — owns the process, spawns the core server, embeds the UI
+    src/frontend/  React + TanStack renderer (Vite SPA)
+  streamdeck-plugin/  Elgato Stream Deck plugin (consumes the Hub API/WS only)
+packages/
+  shared-types/        domain + analytics types (TS + Rust mirrors)
+  shared-events/       EventEnvelope + WS/ingest contracts (TS + Rust mirrors)
+  shared-api-contracts/ request/response shapes for every endpoint (TS)
+  shared-sdk/          typed client over the contracts (used by the plugin)
+  shared-design-tokens/ Apple-derived design tokens (CSS + TS)
+```
 
-## Docs
-[Architecture](docs/architecture.md) · [API](docs/api.md) · [Database](docs/database.md) ·
-[Design system](docs/design-system.md) · [Stream Deck](docs/streamdeck.md) ·
-[Contributing](docs/CONTRIBUTING.md) · design artifacts in [design/](design/).
+## Scripts
 
-## Working in this repo
-See [CLAUDE.md](CLAUDE.md) for project rules and the explicitly-invoked `.claude/` agent system
-(agents/commands/skills).
+| Command | What it does |
+| --- | --- |
+| `pnpm app:dev` | Run the integrated desktop app (UI + API + collectors) |
+| `pnpm app:build` | Build the desktop installer (MSI + NSIS on Windows) |
+| `pnpm dev:hub` | Run the Hub API headless (for browser dev) |
+| `pnpm dev` | Run the Vite UI dev server |
+| `pnpm build` | Build all JS workspaces (Turbo) |
+| `cargo build --workspace` | Build the Rust workspace |
+| `pnpm --filter ai-engineering-monitor-plugin sd:pack` | Package the Stream Deck plugin |
+
+## Documentation
+
+Everything lives in **[docs/](docs/README.md)**:
+
+| Guide | |
+| --- | --- |
+| [Getting started](docs/getting-started.md) | Install, run, enable a tool, see data |
+| [Architecture](docs/architecture.md) | Process model, bounded contexts, data flow |
+| [API reference](docs/api.md) | REST + WebSocket, types, errors |
+| [Database](docs/database.md) | Schema, ERD, indexes, migrations |
+| [Analytics](docs/analytics.md) | Metric catalog, dimensions, "—" semantics |
+| [Integrations](docs/integrations.md) | Collectors, supported tools, write your own |
+| [Design system](docs/design-system.md) | Tokens, theming, density |
+| [Stream Deck](docs/streamdeck.md) | Monitors, build, package, install |
+| [Configuration](docs/configuration.md) | Ports, data dir, settings |
+| [Deployment](docs/deployment.md) | Release builds + packaging |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues |
+| [Contributor guides](docs/guides/) | Add a source / metric / endpoint / route / monitor |
+
+## Contributing
+
+Contributions are welcome! Read **[CONTRIBUTING.md](CONTRIBUTING.md)** for the dev setup, the
+architectural invariants (they're load-bearing), and the PR workflow. Please also review the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+The Hub binds to `127.0.0.1` only and never sends your data anywhere. To report a vulnerability,
+see [SECURITY.md](SECURITY.md).
 
 ## License
-MIT.
+
+[MIT](LICENSE) © AI Engineering Hub contributors.

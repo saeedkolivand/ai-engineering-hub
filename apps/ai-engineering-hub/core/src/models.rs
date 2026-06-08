@@ -57,7 +57,10 @@ pub async fn get_repository(pool: &SqlitePool, id: &str) -> AppResult<Option<Rep
     .await?)
 }
 
-pub async fn list_sessions(pool: &SqlitePool, repository_id: Option<&str>) -> AppResult<Vec<Session>> {
+pub async fn list_sessions(
+    pool: &SqlitePool,
+    repository_id: Option<&str>,
+) -> AppResult<Vec<Session>> {
     let rows = match repository_id {
         Some(rid) => {
             sqlx::query_as::<_, Session>(
@@ -100,9 +103,9 @@ pub async fn list_tasks(pool: &SqlitePool, session_id: Option<&str>) -> AppResul
 }
 
 pub async fn list_agents(pool: &SqlitePool) -> AppResult<Vec<Agent>> {
-    Ok(sqlx::query_as::<_, Agent>(
-        "SELECT id, name, provider, model_id FROM agents ORDER BY name",
+    Ok(
+        sqlx::query_as::<_, Agent>("SELECT id, name, provider, model_id FROM agents ORDER BY name")
+            .fetch_all(pool)
+            .await?,
     )
-    .fetch_all(pool)
-    .await?)
 }

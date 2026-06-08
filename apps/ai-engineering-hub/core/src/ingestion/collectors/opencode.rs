@@ -30,15 +30,21 @@ pub struct OpenCode {
 impl OpenCode {
     pub fn new() -> Self {
         Self {
-            db_path: home_dir()
-                .map(|h| h.join(".local").join("share").join("opencode").join("opencode.db")),
+            db_path: home_dir().map(|h| {
+                h.join(".local")
+                    .join("share")
+                    .join("opencode")
+                    .join("opencode.db")
+            }),
             pool: Mutex::new(None),
             last_time: AtomicI64::new(0),
         }
     }
 
     pub async fn collect(&self) -> AppResult<Vec<CollectedEvent>> {
-        let Some(path) = self.db_path.as_ref() else { return Ok(vec![]) };
+        let Some(path) = self.db_path.as_ref() else {
+            return Ok(vec![]);
+        };
         if !path.exists() {
             return Ok(vec![]);
         }
@@ -73,14 +79,25 @@ impl OpenCode {
         let mut max_time = last;
         for r in rows {
             max_time = max_time.max(r.time_created);
-            let Ok(d) = serde_json::from_str::<Value>(&r.data) else { continue };
+            let Ok(d) = serde_json::from_str::<Value>(&r.data) else {
+                continue;
+            };
             if d.get("role").and_then(Value::as_str) != Some("assistant") {
                 continue;
             }
             let tk = d.get("tokens");
-            let g = |k: &str| tk.and_then(|t| t.get(k)).and_then(Value::as_u64).unwrap_or(0);
+            let g = |k: &str| {
+                tk.and_then(|t| t.get(k))
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0)
+            };
             let cache = tk.and_then(|t| t.get("cache"));
-            let gc = |k: &str| cache.and_then(|c| c.get(k)).and_then(Value::as_u64).unwrap_or(0);
+            let gc = |k: &str| {
+                cache
+                    .and_then(|c| c.get(k))
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0)
+            };
             let input = g("input");
             let output = g("output");
             let reasoning = g("reasoning");
@@ -91,8 +108,16 @@ impl OpenCode {
                 continue;
             }
 
-            let provider = d.get("providerID").and_then(Value::as_str).unwrap_or("unknown").to_string();
-            let model = d.get("modelID").and_then(Value::as_str).unwrap_or("unknown").to_string();
+            let provider = d
+                .get("providerID")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown")
+                .to_string();
+            let model = d
+                .get("modelID")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown")
+                .to_string();
             let ts = Utc
                 .timestamp_millis_opt(r.time_created)
                 .single()
@@ -107,7 +132,8 @@ impl OpenCode {
             }];
 
             // Only reference a session once it (and its repo) are upserted — FKs are on.
-            let (repository_id, session_id) = match r.directory.as_deref().filter(|s| !s.is_empty()) {
+            let (repository_id, session_id) = match r.directory.as_deref().filter(|s| !s.is_empty())
+            {
                 Some(dir) => {
                     let (repo_id, repo_name) = repo_ref(dir);
                     upserts.push(Upsert::Repository {

@@ -50,19 +50,32 @@ async fn repositories(State(s): State<SharedState>) -> AppResult<impl IntoRespon
     Ok(Json(models::list_repositories(&s.pool).await?))
 }
 
-async fn repository(State(s): State<SharedState>, Path(id): Path<String>) -> AppResult<impl IntoResponse> {
+async fn repository(
+    State(s): State<SharedState>,
+    Path(id): Path<String>,
+) -> AppResult<impl IntoResponse> {
     match models::get_repository(&s.pool, &id).await? {
         Some(r) => Ok(Json(r)),
         None => Err(AppError::NotFound(format!("repository {id}"))),
     }
 }
 
-async fn sessions(State(s): State<SharedState>, Query(p): Query<ListParams>) -> AppResult<impl IntoResponse> {
-    Ok(Json(models::list_sessions(&s.pool, p.repository_id.as_deref()).await?))
+async fn sessions(
+    State(s): State<SharedState>,
+    Query(p): Query<ListParams>,
+) -> AppResult<impl IntoResponse> {
+    Ok(Json(
+        models::list_sessions(&s.pool, p.repository_id.as_deref()).await?,
+    ))
 }
 
-async fn tasks(State(s): State<SharedState>, Query(p): Query<ListParams>) -> AppResult<impl IntoResponse> {
-    Ok(Json(models::list_tasks(&s.pool, p.session_id.as_deref()).await?))
+async fn tasks(
+    State(s): State<SharedState>,
+    Query(p): Query<ListParams>,
+) -> AppResult<impl IntoResponse> {
+    Ok(Json(
+        models::list_tasks(&s.pool, p.session_id.as_deref()).await?,
+    ))
 }
 
 async fn agents(State(s): State<SharedState>) -> AppResult<impl IntoResponse> {
@@ -103,7 +116,10 @@ enum IngestBody {
     One(EventEnvelope),
 }
 
-async fn ingest(State(s): State<SharedState>, Json(body): Json<IngestBody>) -> AppResult<impl IntoResponse> {
+async fn ingest(
+    State(s): State<SharedState>,
+    Json(body): Json<IngestBody>,
+) -> AppResult<impl IntoResponse> {
     let count = match body {
         IngestBody::Many(events) => ingestion::ingest_batch(&s, events).await?,
         IngestBody::One(event) => {

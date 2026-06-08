@@ -70,10 +70,12 @@ pub async fn list_sources(pool: &SqlitePool) -> AppResult<Vec<Source>> {
 }
 
 async fn find_by_key(pool: &SqlitePool, key: &str) -> AppResult<Option<SourceRow>> {
-    Ok(sqlx::query_as::<_, SourceRow>(&format!("{SELECT} WHERE key = ?"))
-        .bind(key)
-        .fetch_optional(pool)
-        .await?)
+    Ok(
+        sqlx::query_as::<_, SourceRow>(&format!("{SELECT} WHERE key = ?"))
+            .bind(key)
+            .fetch_optional(pool)
+            .await?,
+    )
 }
 
 /// Resolve `key` to a source id, auto-registering unknown keys as `auto_detected`
@@ -138,13 +140,25 @@ pub async fn set_enabled(pool: &SqlitePool, id: &str, enabled: bool) -> AppResul
 /// Seed the well-known tools as disabled builtin presets (idempotent).
 pub async fn seed_presets(pool: &SqlitePool) -> AppResult<()> {
     const PRESETS: &[(&str, &str, &str)] = &[
-        ("claude-code", "Claude Code", r#"{"emits_tokens":true,"emits_savings":false}"#),
+        (
+            "claude-code",
+            "Claude Code",
+            r#"{"emits_tokens":true,"emits_savings":false}"#,
+        ),
         ("opencode", "OpenCode", r#"{"emits_tokens":true}"#),
         ("cline", "Cline", r#"{"emits_tokens":true}"#),
         ("gemini-cli", "Gemini CLI", r#"{"emits_tokens":true}"#),
         ("rtk", "RTK", r#"{"emits_savings":true}"#),
-        ("graphify", "Graphify", r#"{"emits_savings":true,"emits_retrieval":true}"#),
-        ("codegraph", "CodeGraph", r#"{"emits_savings":true,"emits_retrieval":true}"#),
+        (
+            "graphify",
+            "Graphify",
+            r#"{"emits_savings":true,"emits_retrieval":true}"#,
+        ),
+        (
+            "codegraph",
+            "CodeGraph",
+            r#"{"emits_savings":true,"emits_retrieval":true}"#,
+        ),
     ];
     for (key, name, caps) in PRESETS {
         sqlx::query(

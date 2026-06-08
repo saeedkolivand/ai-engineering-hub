@@ -22,14 +22,32 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Known preset + an UNKNOWN tool ("aider") to exercise auto-detection.
-    ingestion::ingest(&state, mk("claude-code", "token_usage", json!({ "tokens": 1200 }))).await?;
+    ingestion::ingest(
+        &state,
+        mk("claude-code", "token_usage", json!({ "tokens": 1200 })),
+    )
+    .await?;
     ingestion::ingest(&state, mk("aider", "token_usage", json!({ "tokens": 800 }))).await?;
     ingestion::ingest(&state, mk("rtk", "savings", json!({ "savings": 500 }))).await?;
-    ingestion::ingest(&state, mk("graphify", "retrieval", json!({ "accuracy": 0.92, "latency": 35, "savings": 120 }))).await?;
+    ingestion::ingest(
+        &state,
+        mk(
+            "graphify",
+            "retrieval",
+            json!({ "accuracy": 0.92, "latency": 35, "savings": 120 }),
+        ),
+    )
+    .await?;
 
     let srcs = sources::list_sources(&state.pool).await?;
-    let aider = srcs.iter().find(|s| s.key == "aider").expect("aider auto-registered");
-    println!("auto-detected source: {} (origin={:?}, enabled={})", aider.key, aider.origin, aider.enabled);
+    let aider = srcs
+        .iter()
+        .find(|s| s.key == "aider")
+        .expect("aider auto-registered");
+    println!(
+        "auto-detected source: {} (origin={:?}, enabled={})",
+        aider.key, aider.origin, aider.enabled
+    );
 
     let a = analytics::analytics(&state.pool).await?;
     println!("tokens.monthly = {}", a.tokens.monthly_usage);
@@ -39,7 +57,11 @@ async fn main() -> anyhow::Result<()> {
 
     assert_eq!(a.tokens.monthly_usage, 2000, "1200 + 800 tokens");
     assert_eq!(a.savings.total_savings, 500);
-    assert!(a.tokens.source_breakdown.iter().any(|b| b.label == "aider" && b.value == 800.0));
+    assert!(a
+        .tokens
+        .source_breakdown
+        .iter()
+        .any(|b| b.label == "aider" && b.value == 800.0));
     println!("\nSMOKE OK");
     Ok(())
 }

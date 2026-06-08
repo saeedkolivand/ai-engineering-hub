@@ -26,7 +26,9 @@ impl ClaudeCode {
     }
 
     pub async fn collect(&self) -> AppResult<Vec<CollectedEvent>> {
-        let Some(root) = self.root.as_ref() else { return Ok(vec![]) };
+        let Some(root) = self.root.as_ref() else {
+            return Ok(vec![]);
+        };
         if !root.exists() {
             return Ok(vec![]);
         }
@@ -37,7 +39,9 @@ impl ClaudeCode {
         let mut offsets = self.offsets.lock().await;
         for path in files {
             let start = offsets.get(&path).copied().unwrap_or(0);
-            let Some((text, new_offset)) = read_from(&path, start).await else { continue };
+            let Some((text, new_offset)) = read_from(&path, start).await else {
+                continue;
+            };
             offsets.insert(path, new_offset);
             for line in text.lines() {
                 let line = line.trim();
@@ -72,7 +76,11 @@ fn parse_user_task(v: &Value) -> Option<CollectedEvent> {
     if text.trim().is_empty() {
         return None;
     }
-    let cwd = v.get("cwd").and_then(Value::as_str).unwrap_or("").to_string();
+    let cwd = v
+        .get("cwd")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
     if cwd.is_empty() {
         return None; // a task needs a (NOT NULL) session → repository
     }
@@ -164,7 +172,11 @@ fn parse_assistant(v: &Value) -> Option<CollectedEvent> {
         .map(|d| d.with_timezone(&Utc))
         .unwrap_or_else(Utc::now);
     let session = v.get("sessionId").and_then(Value::as_str).map(String::from);
-    let cwd = v.get("cwd").and_then(Value::as_str).unwrap_or("").to_string();
+    let cwd = v
+        .get("cwd")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
     let provider = provider_for(&model);
 
     let agent_id = format!("agent:claude-code:{model}");
@@ -229,7 +241,9 @@ fn parse_assistant(v: &Value) -> Option<CollectedEvent> {
 async fn collect_jsonl(dir: &Path, out: &mut Vec<PathBuf>) {
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
-        let Ok(mut rd) = tokio::fs::read_dir(&d).await else { continue };
+        let Ok(mut rd) = tokio::fs::read_dir(&d).await else {
+            continue;
+        };
         while let Ok(Some(entry)) = rd.next_entry().await {
             let p = entry.path();
             match entry.file_type().await {

@@ -19,14 +19,18 @@ struct Scalar {
 }
 
 async fn scalar(pool: &SqlitePool, sql: &str) -> AppResult<f64> {
-    let row = sqlx::query_as::<_, Scalar>(sql).fetch_optional(pool).await?;
+    let row = sqlx::query_as::<_, Scalar>(sql)
+        .fetch_optional(pool)
+        .await?;
     Ok(row.and_then(|r| r.value).unwrap_or(0.0))
 }
 
 /// Like `scalar`, but preserves SQL `NULL` as `None` — used for rate/score metrics
 /// so "no tool reports this" (→ "—") is distinct from a real 0.
 async fn scalar_opt(pool: &SqlitePool, sql: &str) -> AppResult<Option<f64>> {
-    let row = sqlx::query_as::<_, Scalar>(sql).fetch_optional(pool).await?;
+    let row = sqlx::query_as::<_, Scalar>(sql)
+        .fetch_optional(pool)
+        .await?;
     Ok(row.and_then(|r| r.value))
 }
 
@@ -56,9 +60,13 @@ pub async fn token_metrics(pool: &SqlitePool) -> AppResult<TokenMetrics> {
     let tok = "json_extract(raw_events.payload, '$.tokens')";
     let base = "FROM raw_events WHERE event_type = 'token_usage'";
 
-    let daily = scalar(pool, &format!(
-        "SELECT CAST(SUM({tok}) AS REAL) AS value {base} AND DATE(timestamp) = DATE('now')"
-    )).await? as u64;
+    let daily = scalar(
+        pool,
+        &format!(
+            "SELECT CAST(SUM({tok}) AS REAL) AS value {base} AND DATE(timestamp) = DATE('now')"
+        ),
+    )
+    .await? as u64;
     let weekly = scalar(pool, &format!(
         "SELECT CAST(SUM({tok}) AS REAL) AS value {base} AND strftime('%Y-%W', timestamp) = strftime('%Y-%W','now')"
     )).await? as u64;
@@ -71,20 +79,28 @@ pub async fn token_metrics(pool: &SqlitePool) -> AppResult<TokenMetrics> {
          FROM raw_events LEFT JOIN repositories ON raw_events.repository_id = repositories.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC"
     )).await?;
-    let provider_breakdown = breakdown(pool, &format!(
+    let provider_breakdown = breakdown(
+        pool,
+        &format!(
         "SELECT COALESCE(agents.provider, 'unknown') AS label, CAST(SUM({tok}) AS REAL) AS value \
          FROM raw_events LEFT JOIN agents ON raw_events.agent_id = agents.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC"
-    )).await?;
+    ),
+    )
+    .await?;
     let agent_breakdown = breakdown(pool, &format!(
         "SELECT COALESCE(agents.name, raw_events.agent_id, 'unknown') AS label, CAST(SUM({tok}) AS REAL) AS value \
          FROM raw_events LEFT JOIN agents ON raw_events.agent_id = agents.id \
          WHERE event_type = 'token_usage' GROUP BY label ORDER BY value DESC"
     )).await?;
-    let source_breakdown = breakdown(pool, &format!(
-        "SELECT source AS label, CAST(SUM({tok}) AS REAL) AS value FROM raw_events \
+    let source_breakdown = breakdown(
+        pool,
+        &format!(
+            "SELECT source AS label, CAST(SUM({tok}) AS REAL) AS value FROM raw_events \
          WHERE event_type = 'token_usage' GROUP BY source ORDER BY value DESC"
-    )).await?;
+        ),
+    )
+    .await?;
 
     Ok(TokenMetrics {
         daily_usage: daily,
@@ -99,14 +115,25 @@ pub async fn token_metrics(pool: &SqlitePool) -> AppResult<TokenMetrics> {
 
 pub async fn savings_metrics(pool: &SqlitePool) -> AppResult<SavingsMetrics> {
     let sav = "json_extract(raw_events.payload, '$.savings')";
-    let by_source = breakdown(pool, &format!(
-        "SELECT source AS label, CAST(SUM({sav}) AS REAL) AS value FROM raw_events \
+    let by_source = breakdown(
+        pool,
+        &format!(
+            "SELECT source AS label, CAST(SUM({sav}) AS REAL) AS value FROM raw_events \
          WHERE event_type = 'savings' GROUP BY source ORDER BY value DESC"
-    )).await?;
-    let total = scalar(pool, &format!(
-        "SELECT CAST(SUM({sav}) AS REAL) AS value FROM raw_events WHERE event_type = 'savings'"
-    )).await? as u64;
-    Ok(SavingsMetrics { by_source, total_savings: total })
+        ),
+    )
+    .await?;
+    let total = scalar(
+        pool,
+        &format!(
+            "SELECT CAST(SUM({sav}) AS REAL) AS value FROM raw_events WHERE event_type = 'savings'"
+        ),
+    )
+    .await? as u64;
+    Ok(SavingsMetrics {
+        by_source,
+        total_savings: total,
+    })
 }
 
 pub async fn productivity_metrics(pool: &SqlitePool) -> AppResult<ProductivityMetrics> {
@@ -114,15 +141,20 @@ pub async fn productivity_metrics(pool: &SqlitePool) -> AppResult<ProductivityMe
     let intervention_rate = scalar_opt(pool,
         "SELECT CASE WHEN SUM(event_type = 'intervention') = 0 THEN NULL ELSE \
          SUM(event_type = 'intervention') * 100.0 / NULLIF(SUM(event_type = 'task'), 0) END AS value FROM raw_events").await?;
-    let retry_rate = scalar_opt(pool,
+    let retry_rate = scalar_opt(
+        pool,
         "SELECT CASE WHEN SUM(json_extract(payload, '$.retries') IS NOT NULL) = 0 THEN NULL ELSE \
          SUM(CASE WHEN json_extract(payload, '$.retries') > 0 THEN 1 ELSE 0 END) * 100.0 \
-         / SUM(json_extract(payload, '$.retries') IS NOT NULL) END AS value FROM raw_events").await?;
+         / SUM(json_extract(payload, '$.retries') IS NOT NULL) END AS value FROM raw_events",
+    )
+    .await?;
     Ok(ProductivityMetrics {
-        first_pass_success: scalar_opt(pool, &rate_over_present("$.first_pass_success", "'true'")).await?,
+        first_pass_success: scalar_opt(pool, &rate_over_present("$.first_pass_success", "'true'"))
+            .await?,
         intervention_rate,
         retry_rate,
-        task_completion_rate: scalar_opt(pool, &rate_over_present("$.task_status", "'completed'")).await?,
+        task_completion_rate: scalar_opt(pool, &rate_over_present("$.task_status", "'completed'"))
+            .await?,
         build_success: scalar_opt(pool, &rate_over_present("$.build_status", "'success'")).await?,
         test_success: scalar_opt(pool, &rate_over_present("$.test_status", "'success'")).await?,
     })
@@ -139,12 +171,22 @@ pub async fn quality_metrics(pool: &SqlitePool) -> AppResult<QualityMetrics> {
 
 pub async fn retrieval_metrics(pool: &SqlitePool) -> AppResult<RetrievalMetrics> {
     let base = "FROM raw_events WHERE event_type = 'retrieval'";
-    let savings = scalar_opt(pool, &format!(
-        "SELECT CAST(SUM(json_extract(payload, '$.savings')) AS REAL) AS value {base}"
-    )).await?;
+    let savings = scalar_opt(
+        pool,
+        &format!("SELECT CAST(SUM(json_extract(payload, '$.savings')) AS REAL) AS value {base}"),
+    )
+    .await?;
     Ok(RetrievalMetrics {
-        accuracy: scalar_opt(pool, &format!("SELECT AVG(json_extract(payload, '$.accuracy')) AS value {base}")).await?,
-        latency: scalar_opt(pool, &format!("SELECT AVG(json_extract(payload, '$.latency')) AS value {base}")).await?,
+        accuracy: scalar_opt(
+            pool,
+            &format!("SELECT AVG(json_extract(payload, '$.accuracy')) AS value {base}"),
+        )
+        .await?,
+        latency: scalar_opt(
+            pool,
+            &format!("SELECT AVG(json_extract(payload, '$.latency')) AS value {base}"),
+        )
+        .await?,
         savings: savings.map(|s| s as u64),
     })
 }
