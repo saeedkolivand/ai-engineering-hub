@@ -1,12 +1,9 @@
 <div align="center">
 
-# AI Engineering Hub
-
-**An operations platform for your AI coding toolchain.**
-Ingests metrics from any AI dev tool, computes analytics + repository intelligence, and serves a
-local API/WebSocket — consumed by its own desktop UI and a companion Stream Deck plugin.
+<img src=".github/banner.svg" alt="AI Engineering Hub" width="100%"/>
 
 [![CI](https://github.com/saeedkolivand/ai-engineering-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/saeedkolivand/ai-engineering-hub/actions/workflows/ci.yml)
+[![Release](https://github.com/saeedkolivand/ai-engineering-hub/actions/workflows/release.yml/badge.svg)](https://github.com/saeedkolivand/ai-engineering-hub/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0066cc.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.96-000000?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
@@ -14,7 +11,11 @@ local API/WebSocket — consumed by its own desktop UI and a companion Stream De
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-0066cc.svg)](CONTRIBUTING.md)
 
-[Getting started](docs/getting-started.md) · [Documentation](docs/README.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Contributing](CONTRIBUTING.md)
+**An operations platform for your AI coding toolchain.**
+Ingests metrics from any AI dev tool, computes analytics + repository intelligence, and serves a
+local API/WebSocket — consumed by its own desktop UI and a companion Stream Deck plugin.
+
+[Install](#install) · [Getting started](docs/getting-started.md) · [Documentation](docs/README.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -53,6 +54,60 @@ It's a **local-first desktop app** (one Tauri process) that:
   tokens. → [Design system](docs/design-system.md)
 - 🦀 **One process, no sidecars.** Rust core (Axum + SQLx + SQLite) runs inside Tauri; the
   frontend is embedded. Nothing else to deploy.
+
+## Install
+
+Pre-built installers are published automatically on every release via GitHub Actions. No build
+toolchain required.
+
+### macOS
+
+**Homebrew (recommended)**
+
+```bash
+brew tap saeedkolivand/homebrew-tap
+brew install --cask ai-engineering-hub
+```
+
+Updates are managed by Homebrew (`brew upgrade ai-engineering-hub`) and by the app's built-in
+auto-updater.
+
+**Direct download**
+
+Download the `.dmg` from the [latest release](https://github.com/saeedkolivand/ai-engineering-hub/releases/latest).
+Apple Silicon (arm64) and Intel (x86\_64) builds are both available.
+
+### Windows
+
+Download the `.msi` (recommended) or `.exe` (NSIS) installer from the
+[latest release](https://github.com/saeedkolivand/ai-engineering-hub/releases/latest).
+
+**winget** *(coming soon)*
+
+```powershell
+winget install saeedkolivand.AIEngineeringHub
+```
+
+### Linux
+
+Download the `.AppImage` from the
+[latest release](https://github.com/saeedkolivand/ai-engineering-hub/releases/latest), make it
+executable, and run it:
+
+```bash
+chmod +x AI.Engineering.Hub_*.AppImage
+./AI.Engineering.Hub_*.AppImage
+```
+
+A `.deb` package is also available for Debian/Ubuntu systems.
+
+### Auto-update
+
+Once installed, the app checks for updates on launch and prompts you to install them in-place.
+Updates are signed — the public key is pinned in the app binary and verified before any update is
+applied.
+
+---
 
 ## Architecture at a glance
 

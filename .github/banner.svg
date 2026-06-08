@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400">
+  <defs>
+    <linearGradient id="bg-g" x1="0" y1="0" x2="1280" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#080809"/>
+      <stop offset="100%" stop-color="#111113"/>
+    </linearGradient>
+    <radialGradient id="glow-g" cx="940" cy="200" r="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2997ff" stop-opacity="0.09"/>
+      <stop offset="100%" stop-color="#2997ff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dot-p" x="0" y="0" width="36" height="36" patternUnits="userSpaceOnUse">
+      <circle cx="18" cy="18" r="0.65" fill="#ffffff" fill-opacity="0.055"/>
+    </pattern>
+    <clipPath id="win-cp">
+      <rect x="636" y="28" width="608" height="344" rx="13"/>
+    </clipPath>
+    <linearGradient id="fade-g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e1e20" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#1e1e20"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background layers -->
+  <rect width="1280" height="400" fill="url(#bg-g)"/>
+  <rect width="1280" height="400" fill="url(#dot-p)"/>
+  <rect width="1280" height="400" fill="url(#glow-g)"/>
+
+  <!-- ── LEFT: BRANDING ── -->
+
+  <!-- Hub icon: central node + 6 spokes -->
+  <circle cx="78" cy="104" r="9" fill="#2997ff"/>
+  <line x1="78" y1="95" x2="78" y2="80" stroke="#2997ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <circle cx="78" cy="76" r="4" fill="#2997ff" fill-opacity="0.4"/>
+  <line x1="86" y1="99" x2="98" y2="88" stroke="#2997ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <circle cx="101" cy="85" r="4" fill="#2997ff" fill-opacity="0.4"/>
+  <line x1="86" y1="109" x2="98" y2="120" stroke="#2997ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <circle cx="101" cy="123" r="4" fill="#2997ff" fill-opacity="0.4"/>
+  <line x1="78" y1="113" x2="78" y2="128" stroke="#2997ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <circle cx="78" cy="132" r="4" fill="#2997ff" fill-opacity="0.4"/>
+  <line x1="70" y1="109" x2="58" y2="120" stroke="#2997ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <circle cx="55" cy="123" r="4" fill="#2997ff" fill-opacity="0.4"/>
+  <line x1="70" y1="99" x2="58" y2="88" stroke="#2997ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <circle cx="55" cy="85" r="4" fill="#2997ff" fill-opacity="0.4"/>
+
+  <!-- Title -->
+  <text x="60" y="188"
+    font-family="system-ui,-apple-system,'SF Pro Display',Inter,sans-serif"
+    font-size="50" font-weight="700" fill="#f5f5f7" letter-spacing="-1.5">AI Engineering Hub</text>
+
+  <!-- Subtitle -->
+  <text x="60" y="224"
+    font-family="system-ui,-apple-system,'SF Pro Text',Inter,sans-serif"
+    font-size="17" font-weight="400" fill="#8e8e93" letter-spacing="-0.2">Local-first AI ops platform for engineering teams</text>
+
+  <!-- Tech badges -->
+  <rect x="60" y="246" width="72" height="26" rx="6" fill="#2997ff" fill-opacity="0.12" stroke="#2997ff" stroke-opacity="0.35" stroke-width="1"/>
+  <text x="96" y="263" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="500" fill="#2997ff" text-anchor="middle">Tauri v2</text>
+  <rect x="140" y="246" width="52" height="26" rx="6" fill="#ffffff" fill-opacity="0.04" stroke="#3a3a3c" stroke-width="1"/>
+  <text x="166" y="263" font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="#c7c7cc" text-anchor="middle">Rust</text>
+  <rect x="200" y="246" width="60" height="26" rx="6" fill="#ffffff" fill-opacity="0.04" stroke="#3a3a3c" stroke-width="1"/>
+  <text x="230" y="263" font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="#c7c7cc" text-anchor="middle">React</text>
+  <rect x="268" y="246" width="64" height="26" rx="6" fill="#ffffff" fill-opacity="0.04" stroke="#3a3a3c" stroke-width="1"/>
+  <text x="300" y="263" font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="#c7c7cc" text-anchor="middle">SQLite</text>
+  <rect x="340" y="246" width="104" height="26" rx="6" fill="#ffffff" fill-opacity="0.04" stroke="#3a3a3c" stroke-width="1"/>
+  <text x="392" y="263" font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="#c7c7cc" text-anchor="middle">Stream Deck</text>
+
+  <!-- Feature bullets — 2 columns -->
+  <circle cx="64" cy="308" r="3" fill="#30d158"/>
+  <text x="76" y="313" font-family="system-ui,-apple-system,sans-serif" font-size="13" fill="#c7c7cc">Dynamic source ingestion</text>
+  <circle cx="64" cy="336" r="3" fill="#2997ff"/>
+  <text x="76" y="341" font-family="system-ui,-apple-system,sans-serif" font-size="13" fill="#c7c7cc">Repository intelligence</text>
+  <circle cx="308" cy="308" r="3" fill="#ffd60a"/>
+  <text x="320" y="313" font-family="system-ui,-apple-system,sans-serif" font-size="13" fill="#c7c7cc">Multi-platform releases</text>
+  <circle cx="308" cy="336" r="3" fill="#ff453a" fill-opacity="0.85"/>
+  <text x="320" y="341" font-family="system-ui,-apple-system,sans-serif" font-size="13" fill="#c7c7cc">Stream Deck monitors</text>
+
+  <!-- ── RIGHT: APP WINDOW ── -->
+
+  <!-- Window shadow layer -->
+  <rect x="640" y="34" width="608" height="344" rx="13" fill="#000000" fill-opacity="0.35"/>
+  <!-- Window background -->
+  <rect x="636" y="28" width="608" height="344" rx="13" fill="#1e1e20" stroke="#3a3a3c" stroke-width="0.75"/>
+
+  <g clip-path="url(#win-cp)">
+    <!-- Title bar -->
+    <rect x="636" y="28" width="608" height="40" fill="#272729"/>
+    <circle cx="664" cy="48" r="5.5" fill="#ff453a"/>
+    <circle cx="683" cy="48" r="5.5" fill="#ffd60a"/>
+    <circle cx="702" cy="48" r="5.5" fill="#30d158"/>
+    <text x="940" y="53" font-family="system-ui,-apple-system,sans-serif" font-size="12" font-weight="500" fill="#8e8e93" text-anchor="middle">AI Engineering Hub</text>
+
+    <!-- Icon sidebar -->
+    <rect x="636" y="68" width="56" height="304" fill="#1a1a1c"/>
+    <rect x="654" y="88" width="20" height="20" rx="4" fill="#2997ff" fill-opacity="0.18"/>
+    <rect x="657" y="91" width="14" height="14" rx="2.5" fill="#2997ff"/>
+    <rect x="654" y="120" width="20" height="20" rx="4" fill="none"/>
+    <rect x="657" y="123" width="14" height="14" rx="2.5" fill="#8e8e93" fill-opacity="0.35"/>
+    <rect x="654" y="152" width="20" height="20" rx="4" fill="none"/>
+    <rect x="657" y="155" width="14" height="14" rx="2.5" fill="#8e8e93" fill-opacity="0.35"/>
+    <rect x="654" y="184" width="20" height="20" rx="4" fill="none"/>
+    <rect x="657" y="187" width="14" height="14" rx="2.5" fill="#8e8e93" fill-opacity="0.35"/>
+    <line x1="646" y1="316" x2="678" y2="316" stroke="#3a3a3c" stroke-width="0.5"/>
+    <rect x="657" y="328" width="14" height="14" rx="2.5" fill="#8e8e93" fill-opacity="0.2"/>
+    <line x1="692" y1="68" x2="692" y2="372" stroke="#3a3a3c" stroke-width="0.5"/>
+
+    <!-- Nav panel -->
+    <rect x="692" y="68" width="148" height="304" fill="#1e1e20"/>
+    <text x="704" y="87" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600" fill="#8e8e93" letter-spacing="0.7">SOURCES</text>
+    <!-- Active row: Claude Code -->
+    <rect x="696" y="93" width="140" height="24" rx="5" fill="#2997ff" fill-opacity="0.14"/>
+    <circle cx="710" cy="105" r="3.5" fill="#30d158"/>
+    <text x="720" y="109" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="500" fill="#f5f5f7">Claude Code</text>
+    <text x="828" y="109" font-family="ui-monospace,monospace" font-size="10" fill="#2997ff" text-anchor="end">2.4M</text>
+    <!-- Cursor -->
+    <circle cx="710" cy="129" r="3.5" fill="#30d158"/>
+    <text x="720" y="133" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#c7c7cc">Cursor</text>
+    <text x="828" y="133" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93" text-anchor="end">1.1M</text>
+    <!-- Aider -->
+    <circle cx="710" cy="153" r="3.5" fill="#ffd60a"/>
+    <text x="720" y="157" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#c7c7cc">Aider</text>
+    <text x="828" y="157" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93" text-anchor="end">480k</text>
+    <!-- Copilot -->
+    <circle cx="710" cy="177" r="3.5" fill="#30d158" fill-opacity="0.6"/>
+    <text x="720" y="181" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#c7c7cc">Copilot</text>
+    <text x="828" y="181" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93" text-anchor="end">210k</text>
+    <!-- Graphify -->
+    <circle cx="710" cy="201" r="3.5" fill="#8e8e93" fill-opacity="0.5"/>
+    <text x="720" y="205" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#8e8e93">Graphify</text>
+    <text x="828" y="205" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93" text-anchor="end">62k</text>
+    <!-- Repos section -->
+    <line x1="704" y1="220" x2="828" y2="220" stroke="#3a3a3c" stroke-width="0.5"/>
+    <text x="704" y="236" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600" fill="#8e8e93" letter-spacing="0.7">REPOSITORIES</text>
+    <circle cx="710" cy="252" r="3" fill="#2997ff" fill-opacity="0.7"/>
+    <text x="720" y="256" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#c7c7cc">ai-hub</text>
+    <circle cx="710" cy="272" r="3" fill="#8e8e93" fill-opacity="0.4"/>
+    <text x="720" y="276" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#8e8e93">backend-api</text>
+    <circle cx="710" cy="292" r="3" fill="#8e8e93" fill-opacity="0.4"/>
+    <text x="720" y="296" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#8e8e93">mobile-app</text>
+    <line x1="840" y1="68" x2="840" y2="372" stroke="#3a3a3c" stroke-width="0.5"/>
+
+    <!-- Main panel -->
+    <rect x="840" y="68" width="404" height="304" fill="#1e1e20"/>
+    <!-- Tab bar -->
+    <rect x="840" y="68" width="404" height="28" fill="#242426"/>
+    <rect x="848" y="72" width="70" height="20" rx="4" fill="#1e1e20"/>
+    <text x="883" y="86" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="500" fill="#f5f5f7" text-anchor="middle">Overview</text>
+    <text x="970" y="86" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#8e8e93" text-anchor="middle">Sessions</text>
+    <text x="1060" y="86" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#8e8e93" text-anchor="middle">Repositories</text>
+
+    <!-- Stat cards -->
+    <rect x="848" y="106" width="88" height="52" rx="7" fill="#272729"/>
+    <text x="892" y="122" font-family="system-ui,-apple-system,sans-serif" font-size="9" fill="#8e8e93" text-anchor="middle" letter-spacing="0.3">TOKENS</text>
+    <text x="892" y="145" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="600" fill="#f5f5f7" text-anchor="middle">4.2M</text>
+
+    <rect x="946" y="106" width="88" height="52" rx="7" fill="#272729"/>
+    <text x="990" y="122" font-family="system-ui,-apple-system,sans-serif" font-size="9" fill="#8e8e93" text-anchor="middle" letter-spacing="0.3">SAVED</text>
+    <text x="990" y="145" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="600" fill="#30d158" text-anchor="middle">$65.60</text>
+
+    <rect x="1044" y="106" width="88" height="52" rx="7" fill="#272729"/>
+    <text x="1088" y="122" font-family="system-ui,-apple-system,sans-serif" font-size="9" fill="#8e8e93" text-anchor="middle" letter-spacing="0.3">SESSIONS</text>
+    <text x="1088" y="145" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="600" fill="#f5f5f7" text-anchor="middle">192</text>
+
+    <rect x="1142" y="106" width="88" height="52" rx="7" fill="#272729"/>
+    <text x="1186" y="122" font-family="system-ui,-apple-system,sans-serif" font-size="9" fill="#8e8e93" text-anchor="middle" letter-spacing="0.3">REPOS</text>
+    <text x="1186" y="145" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="600" fill="#f5f5f7" text-anchor="middle">14</text>
+
+    <!-- Chart section -->
+    <text x="848" y="174" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="600" fill="#8e8e93" letter-spacing="0.6">TOKEN USAGE BY MODEL · 7 DAYS</text>
+    <rect x="848" y="181" width="380" height="80" rx="5" fill="#272729"/>
+    <line x1="848" y1="221" x2="1228" y2="221" stroke="#3a3a3c" stroke-width="0.5" stroke-dasharray="4,4"/>
+    <line x1="848" y1="201" x2="1228" y2="201" stroke="#3a3a3c" stroke-width="0.5" stroke-dasharray="4,4"/>
+    <!-- Bars (bottom baseline y=255) -->
+    <rect x="862" y="187" width="36" height="68" rx="3" fill="#2997ff"/>
+    <rect x="912" y="211" width="36" height="44" rx="3" fill="#2997ff" fill-opacity="0.5"/>
+    <rect x="962" y="227" width="36" height="28" rx="3" fill="#8e8e93" fill-opacity="0.45"/>
+    <rect x="1012" y="246" width="36" height="9" rx="3" fill="#30d158" fill-opacity="0.6"/>
+    <rect x="1062" y="237" width="36" height="18" rx="3" fill="#2997ff" fill-opacity="0.28"/>
+    <rect x="1112" y="250" width="36" height="5" rx="3" fill="#8e8e93" fill-opacity="0.25"/>
+
+    <!-- Table -->
+    <rect x="840" y="272" width="404" height="20" fill="#242426"/>
+    <text x="848" y="286" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="500" fill="#8e8e93">REPOSITORY</text>
+    <text x="990" y="286" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="500" fill="#8e8e93">TASKS</text>
+    <text x="1050" y="286" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="500" fill="#8e8e93">TOKENS</text>
+    <text x="1115" y="286" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="500" fill="#8e8e93">SAVED</text>
+    <text x="1178" y="286" font-family="system-ui,-apple-system,sans-serif" font-size="9" font-weight="500" fill="#8e8e93">QUALITY</text>
+    <!-- Row 1 -->
+    <rect x="840" y="292" width="404" height="24" fill="#1e1e20"/>
+    <text x="848" y="308" font-family="ui-monospace,monospace" font-size="10" fill="#f5f5f7">ai-engineering-hub</text>
+    <text x="990" y="308" font-family="ui-monospace,monospace" font-size="10" fill="#c7c7cc">1,240</text>
+    <text x="1050" y="308" font-family="ui-monospace,monospace" font-size="10" fill="#c7c7cc">1.8M</text>
+    <text x="1115" y="308" font-family="ui-monospace,monospace" font-size="10" fill="#30d158">$34.20</text>
+    <rect x="1176" y="300" width="36" height="7" rx="2" fill="#3a3a3c"/>
+    <rect x="1176" y="300" width="30" height="7" rx="2" fill="#30d158" fill-opacity="0.7"/>
+    <!-- Row 2 -->
+    <rect x="840" y="316" width="404" height="24" fill="#242426"/>
+    <text x="848" y="332" font-family="ui-monospace,monospace" font-size="10" fill="#f5f5f7">backend-api</text>
+    <text x="990" y="332" font-family="ui-monospace,monospace" font-size="10" fill="#c7c7cc">840</text>
+    <text x="1050" y="332" font-family="ui-monospace,monospace" font-size="10" fill="#c7c7cc">920k</text>
+    <text x="1115" y="332" font-family="ui-monospace,monospace" font-size="10" fill="#30d158">$18.40</text>
+    <rect x="1176" y="324" width="36" height="7" rx="2" fill="#3a3a3c"/>
+    <rect x="1176" y="324" width="22" height="7" rx="2" fill="#2997ff" fill-opacity="0.7"/>
+    <!-- Row 3 (fades out) -->
+    <rect x="840" y="340" width="404" height="24" fill="#1e1e20"/>
+    <text x="848" y="356" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93">mobile-client</text>
+    <text x="990" y="356" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93">210</text>
+    <text x="1050" y="356" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93">240k</text>
+    <text x="1115" y="356" font-family="ui-monospace,monospace" font-size="10" fill="#8e8e93">$4.80</text>
+    <rect x="1176" y="348" width="36" height="7" rx="2" fill="#3a3a3c"/>
+    <rect x="1176" y="348" width="12" height="7" rx="2" fill="#2997ff" fill-opacity="0.35"/>
+
+    <!-- Bottom fade overlay -->
+    <rect x="840" y="335" width="404" height="37" fill="url(#fade-g)"/>
+  </g>
+
+  <!-- Window border on top of clipped content -->
+  <rect x="636" y="28" width="608" height="344" rx="13" fill="none" stroke="#3a3a3c" stroke-width="0.75"/>
+</svg>
