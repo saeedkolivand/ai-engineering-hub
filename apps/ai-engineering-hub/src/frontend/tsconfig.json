@@ -17,9 +17,12 @@
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"],
-      "shared-ui": ["./src/components/shared-ui"]
-    },
-    "baseUrl": "."
+      "shared-types": ["../../../../packages/shared-types/src/index.ts"],
+      "shared-events": ["../../../../packages/shared-events/src/index.ts"],
+      "shared-api-contracts": ["../../../../packages/shared-api-contracts/src/index.ts"],
+      "shared-sdk": ["../../../../packages/shared-sdk/src/index.ts"],
+      "shared-design-tokens": ["../../../../packages/shared-design-tokens/src/index.ts"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "vite.config.ts"]
 }

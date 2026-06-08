@@ -7,32 +7,34 @@ import { tasksQuery } from "../lib/queries";
 import { setSelection } from "../lib/store";
 import { shortTime } from "../lib/format";
 
-export const Route = createFileRoute("/tasks")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(tasksQuery()),
-  component: Tasks,
+export const Route = createFileRoute("/sessions/$sessionId")({
+  loader: ({ context, params }) => context.queryClient.ensureQueryData(tasksQuery(params.sessionId)),
+  component: SessionDetail,
 });
 
-function Tasks() {
-  const { data } = useTasks();
+function SessionDetail() {
+  const { sessionId } = Route.useParams();
+  const tasks = useTasks(sessionId);
   const navigate = useNavigate();
 
   const columns: ColumnDef<Task, any>[] = [
     { accessorKey: "description", header: "Task", cell: (c) => (c.getValue() as string) ?? "—" },
     { accessorKey: "status", header: "Status" },
-    { accessorKey: "session_id", header: "Session", cell: (c) => (c.getValue() as string).slice(0, 8) },
     { accessorKey: "started_at", header: "Started", cell: (c) => shortTime(c.getValue() as string) },
+    { accessorKey: "completed_at", header: "Completed", cell: (c) => shortTime(c.getValue() as string) },
   ];
 
   return (
     <div>
-      <h1 className="page-title">Tasks</h1>
+      <h1 className="page-title">Session {sessionId.slice(0, 8)}</h1>
+      <div className="section-title">Tasks</div>
       <DataTable
-        data={data ?? []}
+        data={tasks.data ?? []}
         columns={columns}
         searchPlaceholder="Filter tasks…"
-        empty="No tasks yet."
+        empty="No tasks in this session."
         onRowClick={(t) => {
-          setSelection({ kind: "task", id: t.id, label: t.description ?? t.id, meta: { status: t.status, session: t.session_id } });
+          setSelection({ kind: "task", id: t.id, label: t.description ?? t.id, meta: { status: t.status, session: sessionId } });
           navigate({ to: "/tasks/$taskId", params: { taskId: t.id } });
         }}
       />
