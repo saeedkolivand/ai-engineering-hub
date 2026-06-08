@@ -28,24 +28,29 @@ curl -X POST http://127.0.0.1:47800/api/v1/ingest -H "content-type: application/
   -d '{"source":"claude-code","event_type":"token_usage","timestamp":"2026-06-08T12:00:00Z","payload":{"tokens":1500}}'
 ```
 
+Or run the **integrated desktop app** (one process — embeds the UI and starts the Axum
+server + collectors in-process, exactly like the packaged build):
+```
+pnpm app:dev                             # = (cd apps/ai-engineering-hub && tauri dev)
+```
 Other entry points:
 ```
 cargo run -p aeh-core --example smoke    # backend logic smoke check (no server)
-cargo tauri dev                          # integrated desktop app (needs icons; see below)
 ```
 The desktop UI and the Stream Deck plugin both consume `http://127.0.0.1:47800` (REST) and
 `ws://127.0.0.1:47800/ws/events`.
 
 ## Build (release)
+The Tauri CLI is a workspace devDependency (`@tauri-apps/cli`), so one command builds the
+frontend (via `beforeBuildCommand`) and produces the desktop installer:
 ```
-# Frontend bundle
-pnpm --filter ai-engineering-hub-frontend build    # -> src/frontend/dist
-
-# Desktop app installer (uses tauri.conf.json bundle settings)
-cargo tauri build                                  # or: pnpm dlx @tauri-apps/cli build
+pnpm app:build           # = (cd apps/ai-engineering-hub && tauri build) -> MSI + NSIS on Windows
 ```
+The output exe runs everything in a single process — the embedded React UI plus the Axum
+server and the ingestion collectors (started in `setup()`); no separate `dev:hub` needed.
 Bundle config: [src-tauri/tauri.conf.json](../apps/ai-engineering-hub/src-tauri/tauri.conf.json).
-Add icons under `src-tauri/icons/` (`32x32.png`, `128x128.png`, `icon.ico`) before bundling.
+App icons live in `src-tauri/icons/` (already committed: `32x32.png`, `128x128.png`,
+`128x128@2x.png`, `icon.ico`). Regenerate with `pnpm tauri icon <path-to-1024px.png>`.
 
 ## Stream Deck plugin
 ```

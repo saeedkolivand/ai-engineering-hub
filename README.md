@@ -33,15 +33,22 @@ packages/shared-{types,events,api-contracts,sdk,design-tokens}
 ```
 
 ## Quick start
-Browser dev needs two processes — the Hub API and the UI (the API normally runs inside the
-Tauri app, so `pnpm dev` alone shows "Failed to fetch"):
 ```
 pnpm install
-pnpm dev:hub    # terminal 1 — Hub API on 127.0.0.1:47800 (cargo run -p aeh-core --example serve)
+pnpm app:dev    # integrated desktop app — one process (UI + Hub API + collectors)
+```
+`pnpm app:dev` runs the real Tauri app: the Axum server and the ingestion collectors start
+in-process, so enabling an integration immediately reads that tool's local data.
+
+For **browser-only** UI dev you instead run two processes (the API normally lives inside the
+Tauri app, so `pnpm dev` alone shows "Failed to fetch"):
+```
+pnpm dev:hub    # terminal 1 — Hub API on 127.0.0.1:47800
 pnpm dev        # terminal 2 — Vite UI on :5173
 ```
 Backend-only smoke check: `cargo run -p aeh-core --example smoke`.
-See [docs/deployment.md](docs/deployment.md) for seeding data, release builds, and plugin packaging.
+Release installer: `pnpm app:build`. See [docs/deployment.md](docs/deployment.md) for details,
+and [docs/integrations.md](docs/integrations.md) for how each tool's data is collected.
 
 ## Docs
 [Architecture](docs/architecture.md) · [API](docs/api.md) · [Database](docs/database.md) ·

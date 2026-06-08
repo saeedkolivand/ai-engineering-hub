@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:hub": "cargo run -p aeh-core --example serve",
+    "app:dev": "cd apps/ai-engineering-hub && tauri dev",
+    "app:build": "cd apps/ai-engineering-hub && tauri build",
+    "tauri": "tauri",
     "build": "turbo build",
     "test": "turbo test",
     "lint": "turbo lint",
@@ -24,6 +27,7 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.11.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^6.0.2",
