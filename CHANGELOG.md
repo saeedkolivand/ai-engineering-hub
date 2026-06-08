@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.2.0...v0.3.0) (2026-06-08)
+
+### Features
+
+* **landing:** deploy landing page to GitHub Pages ([0edec94](https://github.com/saeedkolivand/ai-engineering-hub/commit/0edec94bd1ccaf4e8bcd8c8fc746374b0a3cbe92))
+
 ## [0.2.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.1.2...v0.2.0) (2026-06-08)
 
 ### Features
