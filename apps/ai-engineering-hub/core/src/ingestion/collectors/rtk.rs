@@ -16,12 +16,26 @@ use tokio::sync::Mutex;
 struct RtkRow {
     id: i64,
     timestamp: String,
+    original_cmd: Option<String>,
     rtk_cmd: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
     saved_tokens: i64,
     savings_pct: f64,
+    exec_time_ms: i64,
     project_path: Option<String>,
+}
+
+/// Retrieval-class commands (search / read / list) — their savings + latency feed the
+/// Retrieval analytics, distinct from the overall savings ledger.
+fn is_retrieval(cmd: &str) -> bool {
+    let verb = cmd.trim().split_whitespace().next().unwrap_or("");
+    let verb = verb.rsplit(['/', '\\']).next().unwrap_or(verb);
+    matches!(
+        verb,
+        "rg" | "grep" | "egrep" | "fgrep" | "ag" | "find" | "fd" | "ls" | "tree" | "cat"
+            | "bat" | "head" | "tail" | "wc" | "glob"
+    )
 }
 
 pub struct Rtk {
@@ -62,7 +76,7 @@ impl Rtk {
 
         let last = self.last_id.load(Ordering::Relaxed);
         let rows = sqlx::query_as::<_, RtkRow>(
-            "SELECT id, timestamp, rtk_cmd, input_tokens, output_tokens, saved_tokens, savings_pct, project_path \
+            "SELECT id, timestamp, original_cmd, rtk_cmd, input_tokens, output_tokens, saved_tokens, savings_pct, exec_time_ms, project_path \
              FROM commands WHERE id > ? AND saved_tokens > 0 ORDER BY id ASC LIMIT 5000",
         )
         .bind(last)
@@ -92,28 +106,45 @@ impl Rtk {
                 Some(repo_id)
             };
 
-            let payload = json!({
-                "savings": r.saved_tokens,
-                "input_tokens": r.input_tokens,
-                "output_tokens": r.output_tokens,
-                "savings_pct": r.savings_pct,
-                "command": r.rtk_cmd,
-            });
-
+            // Overall savings ledger entry.
             out.push(CollectedEvent {
                 dedup_id: format!("rtk:{}", r.id),
                 event: EventEnvelope {
                     source: "rtk".into(),
                     event_type: "savings".into(),
                     timestamp: ts,
-                    refs: EntityRefs {
-                        repository_id,
-                        ..Default::default()
-                    },
-                    payload,
+                    refs: EntityRefs { repository_id: repository_id.clone(), ..Default::default() },
+                    payload: json!({
+                        "savings": r.saved_tokens,
+                        "input_tokens": r.input_tokens,
+                        "output_tokens": r.output_tokens,
+                        "savings_pct": r.savings_pct,
+                        "command": r.rtk_cmd,
+                    }),
                 },
                 upserts,
             });
+
+            // Retrieval-class commands also feed the Retrieval analytics (latency + savings).
+            // The repo row is already upserted by the savings event above (same id, saved>0).
+            let cmd = r.original_cmd.clone().unwrap_or_default();
+            if is_retrieval(&cmd) {
+                out.push(CollectedEvent {
+                    dedup_id: format!("rtkr:{}", r.id),
+                    event: EventEnvelope {
+                        source: "rtk".into(),
+                        event_type: "retrieval".into(),
+                        timestamp: ts,
+                        refs: EntityRefs { repository_id, ..Default::default() },
+                        payload: json!({
+                            "latency": r.exec_time_ms,
+                            "savings": r.saved_tokens,
+                            "command": cmd,
+                        }),
+                    },
+                    upserts: Vec::new(),
+                });
+            }
         }
         self.last_id.store(max_id, Ordering::Relaxed);
         Ok(out)

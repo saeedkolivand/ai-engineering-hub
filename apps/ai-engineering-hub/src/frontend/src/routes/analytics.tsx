@@ -60,6 +60,10 @@ function Analytics() {
         <Stat label="Build success" value={pct(data?.productivity.build_success)} />
         <Stat label="Test success" value={pct(data?.productivity.test_success)} />
       </div>
+      <p className="muted" style={{ marginTop: 8 }}>
+        "—" means no connected tool reports that signal yet. Token usage and savings above are
+        live; productivity rates populate when a source emits task/build/test outcomes.
+      </p>
     </div>
   );
 }

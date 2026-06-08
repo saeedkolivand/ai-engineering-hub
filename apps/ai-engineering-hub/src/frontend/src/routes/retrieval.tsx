@@ -28,10 +28,14 @@ function Retrieval() {
     <div>
       <h1 className="page-title">Retrieval</h1>
       <div className="cards">
-        <div className="card"><div className="label">Accuracy</div><div className="value">{r ? `${(r.accuracy * 100).toFixed(0)}%` : "—"}</div></div>
+        <div className="card"><div className="label">Accuracy</div><div className="value">{r?.accuracy == null ? "—" : `${(r.accuracy * 100).toFixed(0)}%`}</div></div>
         <div className="card"><div className="label">Avg latency</div><div className="value">{ms(r?.latency)}</div></div>
         <div className="card"><div className="label">Savings</div><div className="value">{num(r?.savings)}</div></div>
       </div>
+      <p className="muted" style={{ marginTop: 8 }}>
+        Latency and savings come from retrieval-class commands (search / read / list) reported by
+        sources like RTK. Accuracy shows "—" until a source reports it.
+      </p>
       <div className="section-title">Retrieval bottlenecks (avg latency by source)</div>
       <DataTable data={intel?.retrieval_bottlenecks ?? []} columns={bottleneckCols} empty="No retrieval events." />
     </div>

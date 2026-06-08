@@ -12,26 +12,34 @@ export const Route = createFileRoute("/quality")({
 
 interface MetricRow {
   metric: string;
-  value: number;
+  value: number | null;
 }
 const cols: ColumnDef<MetricRow, any>[] = [
   { accessorKey: "metric", header: "Metric" },
-  { accessorKey: "value", header: "Value", cell: (c) => pct(c.getValue() as number) },
+  { accessorKey: "value", header: "Value", cell: (c) => pct(c.getValue() as number | null) },
 ];
 
 function Quality() {
   const q = useAnalytics().data?.quality;
   const rows: MetricRow[] = [
-    { metric: "Build success", value: q?.build_success ?? 0 },
-    { metric: "Test success", value: q?.test_success ?? 0 },
-    { metric: "Lint success", value: q?.lint_success ?? 0 },
-    { metric: "Regressions", value: q?.regressions ?? 0 },
+    { metric: "Build success", value: q?.build_success ?? null },
+    { metric: "Test success", value: q?.test_success ?? null },
+    { metric: "Lint success", value: q?.lint_success ?? null },
+    { metric: "Regressions", value: q?.regressions ?? null },
   ];
+  const noData = rows.every((r) => r.value == null);
 
   return (
     <div>
       <h1 className="page-title">Quality</h1>
       <DataTable data={rows} columns={cols} searchPlaceholder="Filter metrics…" />
+      {noData && (
+        <p className="muted" style={{ marginTop: 12 }}>
+          "—" means no connected tool reports build/test/lint outcomes yet. These populate when a
+          source emits <code>build_status</code>/<code>test_status</code>/<code>lint_status</code>
+          {" "}events (e.g. a CI reporter or the <code>/api/v1/ingest</code> API).
+        </p>
+      )}
     </div>
   );
 }

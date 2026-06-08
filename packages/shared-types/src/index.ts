@@ -102,26 +102,28 @@ export interface SavingsMetrics {
   total_savings: number;
 }
 
+// Rate/score metrics are nullable: `null` (rendered "—") means no connected tool
+// reports that signal yet — distinct from a real 0%.
 export interface ProductivityMetrics {
-  first_pass_success: number;
-  intervention_rate: number;
-  retry_rate: number;
-  task_completion_rate: number;
-  build_success: number;
-  test_success: number;
+  first_pass_success: number | null;
+  intervention_rate: number | null;
+  retry_rate: number | null;
+  task_completion_rate: number | null;
+  build_success: number | null;
+  test_success: number | null;
 }
 
 export interface QualityMetrics {
-  build_success: number;
-  test_success: number;
-  lint_success: number;
-  regressions: number;
+  build_success: number | null;
+  test_success: number | null;
+  lint_success: number | null;
+  regressions: number | null;
 }
 
 export interface RetrievalMetrics {
-  accuracy: number;
-  latency: number;
-  savings: number;
+  accuracy: number | null;
+  latency: number | null;
+  savings: number | null;
 }
 
 export interface AnalyticsMetrics {

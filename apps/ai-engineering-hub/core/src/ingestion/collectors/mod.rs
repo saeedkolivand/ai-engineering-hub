@@ -39,6 +39,7 @@ pub struct CollectedEvent {
 pub enum Upsert {
     Repository { id: String, name: String, path: String },
     Session { id: String, repository_id: String, start_time: String },
+    Task { id: String, session_id: String, description: String, started_at: String },
     Agent { id: String, name: String, provider: String, model_id: Option<String> },
 }
 
@@ -60,6 +61,17 @@ impl Upsert {
                 .bind(id)
                 .bind(repository_id)
                 .bind(start_time)
+                .execute(pool)
+                .await?;
+            }
+            Upsert::Task { id, session_id, description, started_at } => {
+                sqlx::query(
+                    "INSERT OR IGNORE INTO tasks (id, session_id, description, status, started_at) VALUES (?, ?, ?, 'completed', ?)",
+                )
+                .bind(id)
+                .bind(session_id)
+                .bind(description)
+                .bind(started_at)
                 .execute(pool)
                 .await?;
             }

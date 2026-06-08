@@ -23,6 +23,24 @@ async fn scalar(pool: &SqlitePool, sql: &str) -> AppResult<f64> {
     Ok(row.and_then(|r| r.value).unwrap_or(0.0))
 }
 
+/// Like `scalar`, but preserves SQL `NULL` as `None` — used for rate/score metrics
+/// so "no tool reports this" (→ "—") is distinct from a real 0.
+async fn scalar_opt(pool: &SqlitePool, sql: &str) -> AppResult<Option<f64>> {
+    let row = sqlx::query_as::<_, Scalar>(sql).fetch_optional(pool).await?;
+    Ok(row.and_then(|r| r.value))
+}
+
+/// Rate (0–100) of `field == value`, over only the events that carry `field`.
+/// Returns SQL `NULL` when no event carries the field — i.e. nothing reports it yet.
+fn rate_over_present(field: &str, value: &str) -> String {
+    let present = format!("json_extract(payload, '{field}') IS NOT NULL");
+    format!(
+        "SELECT CASE WHEN SUM({present}) = 0 THEN NULL ELSE \
+         SUM(CASE WHEN json_extract(payload, '{field}') = {value} THEN 1 ELSE 0 END) * 100.0 \
+         / SUM({present}) END AS value FROM raw_events"
+    )
+}
+
 pub(crate) async fn breakdown(pool: &SqlitePool, sql: &str) -> AppResult<Vec<Breakdown>> {
     let rows = sqlx::query_as::<_, LabelValue>(sql).fetch_all(pool).await?;
     Ok(rows
@@ -92,47 +110,42 @@ pub async fn savings_metrics(pool: &SqlitePool) -> AppResult<SavingsMetrics> {
 }
 
 pub async fn productivity_metrics(pool: &SqlitePool) -> AppResult<ProductivityMetrics> {
-    let rate = |field: &str, value: &str| {
-        format!(
-            "SELECT CAST(SUM(CASE WHEN json_extract(payload, '{field}') = {value} THEN 1 ELSE 0 END) AS REAL) \
-             * 100.0 / NULLIF(COUNT(*), 0) AS value FROM raw_events"
-        )
-    };
+    // Interventions/retries are NULL until a tool reports them (vs a real 0%).
+    let intervention_rate = scalar_opt(pool,
+        "SELECT CASE WHEN SUM(event_type = 'intervention') = 0 THEN NULL ELSE \
+         SUM(event_type = 'intervention') * 100.0 / NULLIF(SUM(event_type = 'task'), 0) END AS value FROM raw_events").await?;
+    let retry_rate = scalar_opt(pool,
+        "SELECT CASE WHEN SUM(json_extract(payload, '$.retries') IS NOT NULL) = 0 THEN NULL ELSE \
+         SUM(CASE WHEN json_extract(payload, '$.retries') > 0 THEN 1 ELSE 0 END) * 100.0 \
+         / SUM(json_extract(payload, '$.retries') IS NOT NULL) END AS value FROM raw_events").await?;
     Ok(ProductivityMetrics {
-        first_pass_success: scalar(pool, &rate("$.first_pass_success", "'true'")).await?,
-        intervention_rate: scalar(pool,
-            "SELECT CAST(SUM(CASE WHEN event_type = 'intervention' THEN 1 ELSE 0 END) AS REAL) \
-             * 100.0 / NULLIF(COUNT(*), 0) AS value FROM raw_events").await?,
-        retry_rate: scalar(pool,
-            "SELECT CAST(SUM(CASE WHEN json_extract(payload, '$.retries') > 0 THEN 1 ELSE 0 END) AS REAL) \
-             * 100.0 / NULLIF(COUNT(*), 0) AS value FROM raw_events").await?,
-        task_completion_rate: scalar(pool, &rate("$.task_status", "'completed'")).await?,
-        build_success: scalar(pool, &rate("$.build_status", "'success'")).await?,
-        test_success: scalar(pool, &rate("$.test_status", "'success'")).await?,
+        first_pass_success: scalar_opt(pool, &rate_over_present("$.first_pass_success", "'true'")).await?,
+        intervention_rate,
+        retry_rate,
+        task_completion_rate: scalar_opt(pool, &rate_over_present("$.task_status", "'completed'")).await?,
+        build_success: scalar_opt(pool, &rate_over_present("$.build_status", "'success'")).await?,
+        test_success: scalar_opt(pool, &rate_over_present("$.test_status", "'success'")).await?,
     })
 }
 
 pub async fn quality_metrics(pool: &SqlitePool) -> AppResult<QualityMetrics> {
-    let rate = |field: &str, value: &str| {
-        format!(
-            "SELECT CAST(SUM(CASE WHEN json_extract(payload, '{field}') = {value} THEN 1 ELSE 0 END) AS REAL) \
-             * 100.0 / NULLIF(COUNT(*), 0) AS value FROM raw_events"
-        )
-    };
     Ok(QualityMetrics {
-        build_success: scalar(pool, &rate("$.build_status", "'success'")).await?,
-        test_success: scalar(pool, &rate("$.test_status", "'success'")).await?,
-        lint_success: scalar(pool, &rate("$.lint_status", "'success'")).await?,
-        regressions: scalar(pool, &rate("$.regression", "'true'")).await?,
+        build_success: scalar_opt(pool, &rate_over_present("$.build_status", "'success'")).await?,
+        test_success: scalar_opt(pool, &rate_over_present("$.test_status", "'success'")).await?,
+        lint_success: scalar_opt(pool, &rate_over_present("$.lint_status", "'success'")).await?,
+        regressions: scalar_opt(pool, &rate_over_present("$.regression", "'true'")).await?,
     })
 }
 
 pub async fn retrieval_metrics(pool: &SqlitePool) -> AppResult<RetrievalMetrics> {
     let base = "FROM raw_events WHERE event_type = 'retrieval'";
+    let savings = scalar_opt(pool, &format!(
+        "SELECT CAST(SUM(json_extract(payload, '$.savings')) AS REAL) AS value {base}"
+    )).await?;
     Ok(RetrievalMetrics {
-        accuracy: scalar(pool, &format!("SELECT AVG(json_extract(payload, '$.accuracy')) AS value {base}")).await?,
-        latency: scalar(pool, &format!("SELECT AVG(json_extract(payload, '$.latency')) AS value {base}")).await?,
-        savings: scalar(pool, &format!("SELECT CAST(SUM(json_extract(payload, '$.savings')) AS REAL) AS value {base}")).await? as u64,
+        accuracy: scalar_opt(pool, &format!("SELECT AVG(json_extract(payload, '$.accuracy')) AS value {base}")).await?,
+        latency: scalar_opt(pool, &format!("SELECT AVG(json_extract(payload, '$.latency')) AS value {base}")).await?,
+        savings: savings.map(|s| s as u64),
     })
 }
 

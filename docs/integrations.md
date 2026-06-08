@@ -28,8 +28,8 @@ components are kept in the event payload for future per-type breakdowns.
 
 | Source | Local data store (tool-standard location) | Emits | Notes |
 |---|---|---|---|
-| **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | `token_usage` | Per assistant turn (`message.usage`); attributes repo (from `cwd`), session, model. |
-| **RTK** | `%LOCALAPPDATA%/rtk/history.db` (`commands`) | `savings` | One event per command that saved tokens; repo from `project_path`. |
+| **Claude Code** | `~/.claude/projects/<slug>/*.jsonl` | `token_usage`, `task` | Tokens per assistant turn (`message.usage`); a **task** per user prompt (`promptId`) → the Tasks list + drill-down. Attributes repo (from `cwd`), session, model. |
+| **RTK** | `%LOCALAPPDATA%/rtk/history.db` (`commands`) | `savings`, `retrieval` | A savings event per token-saving command; search/read/list commands also emit a **retrieval** event (latency + savings). Repo from `project_path`. |
 | **OpenCode** | `~/.local/share/opencode/opencode.db` (`message`) | `token_usage` | Assistant messages; repo from session `directory`; real `providerID`/`modelID`. |
 | **Cline** | `%APPDATA%/Code/User/globalStorage/saoudrizwan.claude-dev/tasks/<id>/ui_messages.json` | `token_usage` | `api_req_started` token counts; workspace path isn't recorded, so attributed by task only. |
 | **Gemini CLI** | `~/.gemini/telemetry.log` | `token_usage` | **Best-effort.** Only present if you opt into file telemetry (`telemetry.target=local` + `telemetry.outfile`). |
@@ -37,6 +37,16 @@ components are kept in the event payload for future per-type breakdowns.
 `provider` is inferred from the model id (`claude→anthropic`, `gemini/gemma→google`,
 `gpt→openai`, `deepseek`, `qwen`, `llama→meta`, …) so it stays a meaningful analytics
 dimension even when a tool routes to many model families.
+
+## Metrics that show "—"
+
+Rate/score metrics (Productivity, Quality, and retrieval accuracy) return `null` —
+rendered "—" in the UI — when **no connected tool reports that signal**, which is distinct
+from a real 0%. The installed tools don't emit build/test/lint outcomes, first-pass success,
+intervention/retry counts, or retrieval accuracy, so those read "—" until a source provides
+them (a CI/quality reporter or a `POST /api/v1/ingest` carrying `build_status`,
+`test_status`, `lint_status`, `task_status`, `retries`, etc.). Tokens, savings, tasks, and
+retrieval latency/savings are live from the collectors above.
 
 ## Tools without an event stream
 

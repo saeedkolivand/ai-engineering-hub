@@ -55,12 +55,90 @@ impl ClaudeCode {
     }
 }
 
-/// Parse one JSONL record into a `token_usage` event, or `None` if it isn't an
-/// assistant turn carrying usage.
+/// Parse one JSONL record into a canonical event: assistant turns → `token_usage`,
+/// user prompts → a `task` (so the Tasks list + drill-down populate). `None` otherwise.
 fn parse_line(v: &Value) -> Option<CollectedEvent> {
-    if v.get("type").and_then(Value::as_str)? != "assistant" {
+    match v.get("type").and_then(Value::as_str) {
+        Some("assistant") => parse_assistant(v),
+        Some("user") => parse_user_task(v),
+        _ => None,
+    }
+}
+
+/// A user prompt becomes a Task (id = prompt id), attributed to its repo + session.
+fn parse_user_task(v: &Value) -> Option<CollectedEvent> {
+    let prompt_id = v.get("promptId").and_then(Value::as_str)?.to_string();
+    let text = prompt_text(v.get("message")?)?;
+    if text.trim().is_empty() {
         return None;
     }
+    let cwd = v.get("cwd").and_then(Value::as_str).unwrap_or("").to_string();
+    if cwd.is_empty() {
+        return None; // a task needs a (NOT NULL) session → repository
+    }
+    let session = v.get("sessionId").and_then(Value::as_str)?.to_string();
+    let ts = v
+        .get("timestamp")
+        .and_then(Value::as_str)
+        .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+        .map(|d| d.with_timezone(&Utc))
+        .unwrap_or_else(Utc::now);
+    let (repo_id, repo_name) = repo_ref(&cwd);
+    let task_id = format!("task:{prompt_id}");
+    let desc: String = text.chars().take(300).collect();
+
+    let upserts = vec![
+        Upsert::Repository {
+            id: repo_id.clone(),
+            name: repo_name,
+            path: cwd.trim_start_matches(r"\\?\").to_string(),
+        },
+        Upsert::Session {
+            id: session.clone(),
+            repository_id: repo_id.clone(),
+            start_time: ts.to_rfc3339(),
+        },
+        Upsert::Task {
+            id: task_id.clone(),
+            session_id: session.clone(),
+            description: desc.clone(),
+            started_at: ts.to_rfc3339(),
+        },
+    ];
+
+    Some(CollectedEvent {
+        dedup_id: format!("cctask:{prompt_id}"),
+        event: EventEnvelope {
+            source: "claude-code".into(),
+            event_type: "task".into(),
+            timestamp: ts,
+            refs: EntityRefs {
+                repository_id: Some(repo_id),
+                session_id: Some(session),
+                task_id: Some(task_id),
+                agent_id: None,
+            },
+            payload: json!({ "description": desc, "prompt_id": prompt_id }),
+        },
+        upserts,
+    })
+}
+
+/// Extract the first text from a message's `content` (string or array form).
+fn prompt_text(msg: &Value) -> Option<String> {
+    match msg.get("content")? {
+        Value::String(s) => Some(s.clone()),
+        Value::Array(items) => items.iter().find_map(|it| {
+            (it.get("type").and_then(Value::as_str) == Some("text"))
+                .then(|| it.get("text").and_then(Value::as_str).map(String::from))
+                .flatten()
+        }),
+        _ => None,
+    }
+}
+
+/// An assistant turn with `message.usage` becomes a `token_usage` event.
+fn parse_assistant(v: &Value) -> Option<CollectedEvent> {
     let msg = v.get("message")?;
     let usage = msg.get("usage")?;
     let g = |k: &str| usage.get(k).and_then(Value::as_u64).unwrap_or(0);

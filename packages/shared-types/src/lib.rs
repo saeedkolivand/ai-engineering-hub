@@ -113,29 +113,31 @@ pub struct SavingsMetrics {
     pub total_savings: u64,
 }
 
+// Rate/score metrics are `Option`: `None` (→ JSON `null`, rendered "—") means no
+// connected tool reports that signal yet — distinct from a real 0%.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ProductivityMetrics {
-    pub first_pass_success: f64,
-    pub intervention_rate: f64,
-    pub retry_rate: f64,
-    pub task_completion_rate: f64,
-    pub build_success: f64,
-    pub test_success: f64,
+    pub first_pass_success: Option<f64>,
+    pub intervention_rate: Option<f64>,
+    pub retry_rate: Option<f64>,
+    pub task_completion_rate: Option<f64>,
+    pub build_success: Option<f64>,
+    pub test_success: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct QualityMetrics {
-    pub build_success: f64,
-    pub test_success: f64,
-    pub lint_success: f64,
-    pub regressions: f64,
+    pub build_success: Option<f64>,
+    pub test_success: Option<f64>,
+    pub lint_success: Option<f64>,
+    pub regressions: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct RetrievalMetrics {
-    pub accuracy: f64,
-    pub latency: f64, // ms
-    pub savings: u64,
+    pub accuracy: Option<f64>,
+    pub latency: Option<f64>, // ms
+    pub savings: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
