@@ -3,6 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig*.json", "package.json"],
       "outputs": ["dist/**", ".next/**", "out/**"]
     },
     "dev": {
@@ -13,7 +14,16 @@
       "dependsOn": ["^build"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "inputs": ["src/**", "*.config.*", "eslint.config.*"],
+      "dependsOn": ["^lint"],
+      "outputs": [],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tsconfig*.json"],
+      "outputs": [],
+      "cache": false
     }
   }
 }
