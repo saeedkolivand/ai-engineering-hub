@@ -4,6 +4,7 @@
 //! the file watcher, and manual import. Sources are resolved/auto-registered via
 //! the registry; nothing here is hardcoded per-tool.
 pub mod adapter;
+pub mod collectors;
 pub mod watcher;
 
 use crate::error::AppResult;

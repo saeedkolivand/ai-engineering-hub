@@ -25,8 +25,11 @@ pub async fn bootstrap(db_path: &str) -> Result<SharedState> {
     Ok(AppState::new(pool))
 }
 
-/// Convenience entry used by the Tauri shell: bootstrap + serve on the given port.
+/// Convenience entry used by the Tauri shell: bootstrap + start collectors + serve.
+/// Collectors are pull-based and gated on each source being enabled in the registry,
+/// so enabling an integration in the UI actually starts producing data.
 pub async fn run(db_path: &str, port: u16) -> Result<()> {
     let state = bootstrap(db_path).await?;
+    ingestion::collectors::spawn(state.clone());
     server::serve(state, port).await
 }

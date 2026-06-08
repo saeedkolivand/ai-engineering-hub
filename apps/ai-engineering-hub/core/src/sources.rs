@@ -76,30 +76,52 @@ async fn find_by_key(pool: &SqlitePool, key: &str) -> AppResult<Option<SourceRow
         .await?)
 }
 
-/// Ensure a source row exists for `key`. Unknown keys are inserted as
-/// `auto_detected` + disabled (surfaced in the Integrations inbox). Either way
-/// `last_seen_at` and `event_count` are bumped. Returns the source id.
-pub async fn ensure_source(pool: &SqlitePool, key: &str) -> AppResult<String> {
+/// Resolve `key` to a source id, auto-registering unknown keys as `auto_detected`
+/// + disabled (surfaced in the Integrations inbox). Does NOT bump counters — use
+/// [`record_seen`] for that once events are actually persisted.
+pub async fn resolve(pool: &SqlitePool, key: &str) -> AppResult<String> {
     if let Some(row) = find_by_key(pool, key).await? {
-        sqlx::query(
-            "UPDATE sources SET last_seen_at = CURRENT_TIMESTAMP, event_count = event_count + 1 WHERE id = ?",
-        )
-        .bind(&row.id)
-        .execute(pool)
-        .await?;
         return Ok(row.id);
     }
-
     let id = Uuid::new_v4().to_string();
     sqlx::query(
         "INSERT INTO sources (id, key, display_name, kind, origin, capabilities, enabled, last_seen_at, event_count) \
-         VALUES (?, ?, ?, 'custom', 'auto_detected', '{}', 0, CURRENT_TIMESTAMP, 1)",
+         VALUES (?, ?, ?, 'custom', 'auto_detected', '{}', 0, CURRENT_TIMESTAMP, 0)",
     )
     .bind(&id)
     .bind(key)
     .bind(key) // display_name defaults to the key until the user renames it
     .execute(pool)
     .await?;
+    Ok(id)
+}
+
+/// Bump `last_seen_at` and `event_count` after `n` events were persisted for a source.
+pub async fn record_seen(pool: &SqlitePool, id: &str, n: i64) -> AppResult<()> {
+    sqlx::query(
+        "UPDATE sources SET last_seen_at = CURRENT_TIMESTAMP, event_count = event_count + ? WHERE id = ?",
+    )
+    .bind(n)
+    .bind(id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+/// Whether a source (by key) is enabled. Unknown keys are treated as disabled.
+pub async fn is_enabled(pool: &SqlitePool, key: &str) -> AppResult<bool> {
+    let enabled: Option<i64> = sqlx::query_scalar("SELECT enabled FROM sources WHERE key = ?")
+        .bind(key)
+        .fetch_optional(pool)
+        .await?;
+    Ok(enabled.map(|e| e != 0).unwrap_or(false))
+}
+
+/// Ensure a source row exists for `key` and record one event against it.
+/// Used by the HTTP push / single-envelope path. Returns the source id.
+pub async fn ensure_source(pool: &SqlitePool, key: &str) -> AppResult<String> {
+    let id = resolve(pool, key).await?;
+    record_seen(pool, &id, 1).await?;
     Ok(id)
 }
 

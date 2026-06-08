@@ -55,8 +55,9 @@ function Integrations() {
     <div>
       <h1 className="page-title">Integrations</h1>
       <p className="muted">
-        Tools are data, not code. Unknown sources auto-register here on first event — name,
-        map, and enable them. The named tools ship as presets.
+        Tools are data, not code. Enabling a preset starts reading that tool's own local data
+        (Claude Code, RTK, OpenCode, Cline, Gemini CLI) on a short poll — no extra setup.
+        Unknown sources auto-register here on first event; other tools can push to the ingest API.
       </p>
 
       {detected.length > 0 && (
