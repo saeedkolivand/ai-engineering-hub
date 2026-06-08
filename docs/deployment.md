@@ -11,16 +11,30 @@ cargo fetch             # Rust workspace
 ```
 
 ## Run (dev)
-```
-# Backend logic smoke check (no UI):
-cargo run -p aeh-core --example smoke
+The Hub API lives **inside the Tauri process** in production. For browser-based UI dev you run
+two things — the API and the UI — because `pnpm dev` starts the Vite UI **only** (without the
+API you'll see "Could not load. Failed to fetch / Is the Hub running?").
 
-# Desktop app (Tauri shell + frontend + embedded Axum API on 127.0.0.1:47800):
-pnpm --filter ai-engineering-hub-frontend dev     # Vite dev server (:5173)
-cargo run -p ai-engineering-hub-tauri             # launches the window + Hub API
 ```
-The Tauri shell spawns the Axum server in `setup()`, so the desktop UI and the Stream Deck
-plugin both consume `http://127.0.0.1:47800` (REST) and `ws://127.0.0.1:47800/ws/events`.
+# Terminal 1 — Hub API (headless Axum server on 127.0.0.1:47800):
+pnpm dev:hub                  # = cargo run -p aeh-core --example serve
+
+# Terminal 2 — UI (Vite dev server on :5173):
+pnpm dev                      # = turbo dev (frontend)
+```
+Seed some data so the views aren't empty:
+```
+curl -X POST http://127.0.0.1:47800/api/v1/ingest -H "content-type: application/json" \
+  -d '{"source":"claude-code","event_type":"token_usage","timestamp":"2026-06-08T12:00:00Z","payload":{"tokens":1500}}'
+```
+
+Other entry points:
+```
+cargo run -p aeh-core --example smoke    # backend logic smoke check (no server)
+cargo tauri dev                          # integrated desktop app (needs icons; see below)
+```
+The desktop UI and the Stream Deck plugin both consume `http://127.0.0.1:47800` (REST) and
+`ws://127.0.0.1:47800/ws/events`.
 
 ## Build (release)
 ```

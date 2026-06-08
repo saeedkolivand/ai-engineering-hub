@@ -5,6 +5,7 @@
   "packageManager": "pnpm@11.0.9",
   "scripts": {
     "dev": "turbo dev",
+    "dev:hub": "cargo run -p aeh-core --example serve",
     "build": "turbo build",
     "test": "turbo test",
     "lint": "turbo lint",
