@@ -1,3 +1,9 @@
+## [0.9.1](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.9.0...v0.9.1) (2026-06-09)
+
+### Bug Fixes
+
+* **ci:** update release pipeline for Tauri v2 updater artifact names ([fe99d1d](https://github.com/saeedkolivand/ai-engineering-hub/commit/fe99d1d233793ef44f8b451b0a40033690c63bf3))
+
 ## [0.9.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.8.0...v0.9.0) (2026-06-09)
 
 ### Features
