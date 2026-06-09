@@ -1,8 +1,8 @@
 # Auto-updated by the release workflow after every macOS build.
 # To update manually: node scripts/update-homebrew-cask.mjs <version> <sha256>
 cask "ai-engineering-hub" do
-  version "0.6.0"
-  sha256 "48f9e16f84a07792ac5f99419f25c9aa95db481453c4103f47c7132113e00d03"
+  version "0.7.1"
+  sha256 "8ef8a0d5462677db561be9d63d765648bc6870dd714d516fe9682206b70aac3e"
 
   url "https://github.com/saeedkolivand/ai-engineering-hub/releases/download/v#{version}/AI%20Engineering%20Hub_#{version}_aarch64.dmg"
 
