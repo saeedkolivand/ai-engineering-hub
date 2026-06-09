@@ -1,3 +1,9 @@
+## [0.4.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.3.0...v0.4.0) (2026-06-09)
+
+### Features
+
+* **landing:** add marketing landing page ([359e605](https://github.com/saeedkolivand/ai-engineering-hub/commit/359e60583dd5628494be4295d65eccb674c1691e))
+
 ## [0.3.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.2.0...v0.3.0) (2026-06-08)
 
 ### Features
