@@ -5,6 +5,7 @@ import { NavBar } from "./NavBar";
 import { RightPanel } from "./RightPanel";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { CommandPalette } from "./CommandPalette";
+import { UpdateBanner } from "../UpdateBanner";
 import { registerGlobalShortcuts, unregisterGlobalShortcuts } from "../../lib/shortcuts";
 
 export function AppShell() {
@@ -36,8 +37,11 @@ export function AppShell() {
         </button>
         <span className="live-dot">Live</span>
       </header>
-      <main className="area-main overflow-auto p-md">
-        <Outlet />
+      <main className="area-main overflow-auto" style={{ display: "flex", flexDirection: "column" }}>
+        <UpdateBanner />
+        <div className="p-md" style={{ flex: 1 }}>
+          <Outlet />
+        </div>
       </main>
       <RightPanel />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />

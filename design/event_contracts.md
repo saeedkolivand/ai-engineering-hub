@@ -1,5 +1,22 @@
 # Event Contracts: AI Engineering Hub
 
+> **Status: partially superseded — do not treat this file as the implemented contract.**
+>
+> The envelope shape documented below (`id`/`version`/`type`/`metadata`) and several event names
+> (`build_result`, `test_result`, `intervention_occurred`, `task_status_changed`) differ from the
+> shipped implementation. The authoritative implemented contract is:
+>
+> - Envelope: `packages/shared-events` — fields are `source`/`event_type`/`timestamp`/`refs`/`payload`
+>   (no `id`, no `version`, no `metadata` object).
+> - Quality/productivity event types: `build` (payload: `build_status`, `command`), `test`
+>   (payload: `test_status`, `command`, `regression`), `lint` (payload: `lint_status`, `command`),
+>   `intervention` (payload: `reason`).
+> - Analytics signal coverage: see [docs/analytics.md](../docs/analytics.md) for which fields are
+>   live from the Claude Code collector and which still require an external push.
+>
+> This document is retained as a design-history artifact. Update it or supersede it before
+> referencing it as a specification.
+
 ## 1. Overview
 The system uses an event-driven architecture. All communication between components (Backend $\leftrightarrow$ Frontend, Backend $\leftrightarrow$ Stream Deck) is mediated by strongly typed events. These contracts are defined in the `packages/shared-events` package.
 

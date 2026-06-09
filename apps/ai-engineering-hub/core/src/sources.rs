@@ -143,7 +143,7 @@ pub async fn seed_presets(pool: &SqlitePool) -> AppResult<()> {
         (
             "claude-code",
             "Claude Code",
-            r#"{"emits_tokens":true,"emits_savings":false}"#,
+            r#"{"emits_tokens":true,"emits_build":true,"emits_test":true,"emits_lint":true}"#,
         ),
         ("opencode", "OpenCode", r#"{"emits_tokens":true}"#),
         ("cline", "Cline", r#"{"emits_tokens":true}"#),
@@ -172,5 +172,14 @@ pub async fn seed_presets(pool: &SqlitePool) -> AppResult<()> {
         .execute(pool)
         .await?;
     }
+    // `INSERT OR IGNORE` above won't touch an existing row, so refresh the
+    // claude-code preset's capabilities on existing installs (it gained
+    // build/test/lint emission). Idempotent and scoped to the builtin preset.
+    sqlx::query(
+        "UPDATE sources SET capabilities = ? WHERE key = 'claude-code' AND origin = 'builtin_preset'",
+    )
+    .bind(r#"{"emits_tokens":true,"emits_build":true,"emits_test":true,"emits_lint":true}"#)
+    .execute(pool)
+    .await?;
     Ok(())
 }
