@@ -7,6 +7,7 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { CommandPalette } from "./CommandPalette";
 import { UpdateBanner } from "../UpdateBanner";
 import { registerGlobalShortcuts, unregisterGlobalShortcuts } from "../../lib/shortcuts";
+import { checkForUpdates } from "../../lib/updater";
 
 export function AppShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -18,6 +19,19 @@ export function AppShell() {
     return () => {
       void unregisterGlobalShortcuts();
     };
+  }, []);
+
+  // Listen for tray "Check for Updates…" menu item.
+  useEffect(() => {
+    if (!("__TAURI_INTERNALS__" in window)) return;
+    let unlisten: (() => void) | undefined;
+    void (async () => {
+      const { listen } = await import("@tauri-apps/api/event");
+      unlisten = await listen("menu:check-for-updates", () => {
+        void checkForUpdates(false);
+      });
+    })();
+    return () => { unlisten?.(); };
   }, []);
 
   return (

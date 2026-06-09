@@ -17,10 +17,13 @@ export const Route = createFileRoute("/settings")({
 const inputClass = "text-ui border border-hairline rounded-xs px-2.5 py-1.5 bg-canvas text-ink outline-none focus:border-accent";
 const labelClass = "text-ui-sm text-ink-faint";
 
+const GITHUB_REPO = "saeedkolivand/ai-engineering-hub";
+
 function SoftwareSection() {
   const { pending, checking, dismissed, lastChecked, error } = useStore(updateStore);
   const [appVersion, setAppVersion] = useState<string | null>(null);
-  const [changelogOpen, setChangelogOpen] = useState(false);
+  const [changelogModal, setChangelogModal] = useState<{ body: string; version: string } | null>(null);
+  const [fetchingChangelog, setFetchingChangelog] = useState(false);
   const [installing, setInstalling] = useState(false);
 
   useEffect(() => {
@@ -35,6 +38,26 @@ function SoftwareSection() {
   }, []);
 
   const handleCheck = () => void checkForUpdates(false);
+
+  const openCurrentChangelog = async () => {
+    if (!appVersion) return;
+    setFetchingChangelog(true);
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/v${appVersion}`,
+      );
+      if (res.ok) {
+        const data = await res.json() as { body?: string; name?: string };
+        setChangelogModal({ body: data.body ?? "No release notes for this version.", version: appVersion });
+      } else {
+        setChangelogModal({ body: "Release notes not available.", version: appVersion });
+      }
+    } catch {
+      setChangelogModal({ body: "Could not fetch release notes.", version: appVersion });
+    } finally {
+      setFetchingChangelog(false);
+    }
+  };
 
   const handleInstall = async () => {
     if (!pending) return;
@@ -86,7 +109,7 @@ function SoftwareSection() {
               <strong>{pending.version}</strong> available
               {pending.body && (
                 <button
-                  onClick={() => setChangelogOpen(true)}
+                  onClick={() => setChangelogModal({ body: pending.body!, version: pending.version })}
                   style={{
                     marginLeft: 8,
                     color: "var(--color-accent)",
@@ -142,14 +165,25 @@ function SoftwareSection() {
           >
             {checking ? "Checking…" : "Check for updates"}
           </button>
+          {appVersion && (
+            <button
+              className="btn subtle"
+              type="button"
+              disabled={fetchingChangelog}
+              onClick={() => void openCurrentChangelog()}
+              style={{ fontSize: "var(--fs-ui-sm)" }}
+            >
+              {fetchingChangelog ? "Loading…" : "View Changelog"}
+            </button>
+          )}
         </div>
       </div>
 
-      {changelogOpen && pending?.body && (
+      {changelogModal && (
         <ChangelogModal
-          body={pending.body}
-          version={pending.version}
-          onClose={() => setChangelogOpen(false)}
+          body={changelogModal.body}
+          version={changelogModal.version}
+          onClose={() => setChangelogModal(null)}
         />
       )}
     </div>
