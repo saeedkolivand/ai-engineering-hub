@@ -59,7 +59,10 @@ export function DataTable<T>({
                   <th
                     key={h.id}
                     onClick={h.column.getToggleSortingHandler()}
-                    className={h.column.getCanSort() ? "sortable" : ""}
+                    className={[
+                      h.column.getCanSort() ? "sortable" : "",
+                      (h.column.columnDef.meta as any)?.numeric ? "num" : "",
+                    ].filter(Boolean).join(" ") || undefined}
                   >
                     {flexRender(h.column.columnDef.header, h.getContext())}
                     {{ asc: " ↑", desc: " ↓" }[h.column.getIsSorted() as string] ?? ""}
@@ -76,7 +79,10 @@ export function DataTable<T>({
                 className={onRowClick ? "clickable" : ""}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                  <td
+                    key={cell.id}
+                    className={(cell.column.columnDef.meta as any)?.numeric ? "num" : undefined}
+                  >{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                 ))}
               </tr>
             ))}

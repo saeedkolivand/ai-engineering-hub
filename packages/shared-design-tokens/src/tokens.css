@@ -54,9 +54,12 @@
   --fs-ui: 13px;
   --fs-ui-sm: 12px;
   --fs-micro: 11px;
+  /* Single-entity metric display (card values) */
+  --fs-metric: 22px;
 
   /* Radius */
   --radius-none: 0px;
+  --radius-xs: 5px;
   --radius-sm: 8px;
   --radius-md: 11px;
   --radius-lg: 18px;
@@ -77,6 +80,12 @@
   /* Elevation (restrained) */
   --elevation-product: 3px 5px 30px 0 rgba(0, 0, 0, 0.22);
   --elevation-overlay: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* Layout constants */
+  --topbar-h: 46px;
+  --titlebar-h: 38px;
+  --sidebar-w: 188px;
+  --rightpanel-w: 300px;
 
   /* Interaction */
   --press-scale: 0.95;

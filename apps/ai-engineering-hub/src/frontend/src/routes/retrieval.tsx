@@ -17,7 +17,7 @@ export const Route = createFileRoute("/retrieval")({
 
 const bottleneckCols: ColumnDef<Breakdown, any>[] = [
   { accessorKey: "label", header: "Source" },
-  { accessorKey: "value", header: "Avg latency", cell: (c) => ms(c.getValue() as number) },
+  { accessorKey: "value", header: "Avg latency", meta: { numeric: true }, cell: (c) => ms(c.getValue() as number) },
 ];
 
 function Retrieval() {

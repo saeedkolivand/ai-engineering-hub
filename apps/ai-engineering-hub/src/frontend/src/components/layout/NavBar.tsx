@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-const ITEMS: { to: string; label: string; exact?: boolean }[] = [
+const WORKSPACE: { to: string; label: string; exact?: boolean }[] = [
   { to: "/", label: "Overview", exact: true },
   { to: "/repositories", label: "Repositories" },
   { to: "/sessions", label: "Sessions" },
@@ -17,7 +17,8 @@ export function NavBar() {
   return (
     <nav className="nav">
       <div className="brand">AI Engineering Hub</div>
-      {ITEMS.map((it) => (
+      <div className="nav-group">Workspace</div>
+      {WORKSPACE.map((it) => (
         <Link
           key={it.to}
           to={it.to}
@@ -27,7 +28,7 @@ export function NavBar() {
           {it.label}
         </Link>
       ))}
-      <div style={{ height: 12 }} />
+      <div className="nav-group">Tools</div>
       <Link to="/integrations" activeProps={{ className: "active" }}>
         Integrations
       </Link>

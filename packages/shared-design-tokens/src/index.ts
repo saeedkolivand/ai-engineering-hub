@@ -51,10 +51,12 @@ export const fontSize = {
   ui: "13px",
   uiSm: "12px",
   micro: "11px",
+  metric: "22px",
 } as const;
 
 export const radius = {
   none: "0px",
+  xs: "5px",
   sm: "8px",
   md: "11px",
   lg: "18px",
@@ -89,5 +91,12 @@ export const motion = {
   focusRing: `0 0 0 2px ${color.accentFocus}`,
 } as const;
 
-export const tokens = { color, font, weight, fontSize, radius, space, elevation, motion } as const;
+export const layout = {
+  topbarH: "var(--topbar-h)",
+  titlebarH: "var(--titlebar-h)",
+  sidebarW: "var(--sidebar-w)",
+  rightpanelW: "var(--rightpanel-w)",
+} as const;
+
+export const tokens = { color, font, weight, fontSize, radius, space, elevation, motion, layout } as const;
 export type Tokens = typeof tokens;
