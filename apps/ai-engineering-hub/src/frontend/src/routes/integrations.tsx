@@ -53,8 +53,8 @@ function Integrations() {
 
   return (
     <div>
-      <h1 className="page-title">Integrations</h1>
-      <p className="muted">
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Integrations</h1>
+      <p className="text-ink-faint mb-4">
         Tools are data, not code. Enabling a preset starts reading that tool's own local data
         (Claude Code, RTK, OpenCode, Cline, Gemini CLI) on a short poll — no extra setup.
         Unknown sources auto-register here on first event; other tools can push to the ingest API.
@@ -62,12 +62,12 @@ function Integrations() {
 
       {detected.length > 0 && (
         <>
-          <div className="section-title">Detected — needs review ({detected.length})</div>
+          <div className="text-ui-lg font-semibold mt-6 mb-2">Detected — needs review ({detected.length})</div>
           <DataTable data={detected} columns={columns} empty="" />
         </>
       )}
 
-      <div className="section-title">All sources</div>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">All sources</div>
       <DataTable
         data={sources}
         columns={columns}

@@ -2,7 +2,11 @@
 //! HTTP/WebSocket server (from `aeh-core`) inside it — no sidecars, no extra binaries.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::Manager;
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{TrayIconBuilder, TrayIconEvent},
+    Manager,
+};
 
 fn main() {
     tracing_subscriber::fmt()
@@ -46,6 +50,31 @@ fn main() {
                     tracing::error!("hub server exited: {e}");
                 }
             });
+
+            // System tray: app icon + minimal context menu.
+            let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&quit])?;
+
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click { .. } = event {
+                        let app = tray.app_handle();
+                        if let Some(win) = app.get_webview_window("main") {
+                            let _ = win.show();
+                            let _ = win.set_focus();
+                        }
+                    }
+                })
+                .on_menu_event(|app, event| {
+                    if event.id == "quit" {
+                        app.exit(0);
+                    }
+                })
+                .build(app)?;
+
             Ok(())
         })
         .run(tauri::generate_context!())

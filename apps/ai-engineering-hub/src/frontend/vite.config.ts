@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import path from "node:path";
@@ -10,6 +11,7 @@ const pkgSrc = (name: string, file = "index.ts") =>
 
 export default defineConfig({
   plugins: [
+    tailwindcss(),
     // Router plugin MUST come before react().
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),

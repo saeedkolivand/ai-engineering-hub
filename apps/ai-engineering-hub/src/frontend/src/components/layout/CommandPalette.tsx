@@ -59,9 +59,14 @@ function Palette({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="cp-overlay" onClick={onClose}>
-      <div className="cp" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="bg-canvas rounded-md border border-hairline w-[580px] max-h-[480px] flex flex-col overflow-hidden"
+        style={{ boxShadow: "var(--elevation-overlay)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <input
           autoFocus
+          className="w-full px-4 py-3 border-b border-hairline text-ui bg-transparent outline-none text-ink"
           placeholder="Search repositories, sessions, tasks, agents, pages…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -70,19 +75,21 @@ function Palette({ onClose }: { onClose: () => void }) {
             if (e.key === "Escape") onClose();
           }}
         />
-        <div className="cp-list">
+        <div className="overflow-y-auto flex-1">
           {Object.entries(groups).map(([group, items]) => (
             <div key={group}>
-              <div className="cp-group">{group}</div>
+              <div className="text-micro uppercase tracking-[.06em] text-ink-faint px-4 pt-3 pb-1">{group}</div>
               {items.map((c) => (
                 <div className="cp-item" key={`${c.group}-${c.to}`} onClick={() => go(c.to)}>
                   <span>{c.label}</span>
-                  {c.tag && <span className="tag">{c.tag}</span>}
+                  {c.tag && (
+                    <span className="pill muted">{c.tag}</span>
+                  )}
                 </div>
               ))}
             </div>
           ))}
-          {filtered.length === 0 && <div className="cp-item muted">No matches</div>}
+          {filtered.length === 0 && <div className="cp-item text-ink-faint">No matches</div>}
         </div>
       </div>
     </div>

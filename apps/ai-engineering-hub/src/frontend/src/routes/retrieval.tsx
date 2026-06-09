@@ -26,17 +26,26 @@ function Retrieval() {
 
   return (
     <div>
-      <h1 className="page-title">Retrieval</h1>
-      <div className="cards">
-        <div className="card"><div className="label">Accuracy</div><div className="value">{r?.accuracy == null ? "—" : `${(r.accuracy * 100).toFixed(0)}%`}</div></div>
-        <div className="card"><div className="label">Avg latency</div><div className="value">{ms(r?.latency)}</div></div>
-        <div className="card"><div className="label">Savings</div><div className="value">{num(r?.savings)}</div></div>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Retrieval</h1>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 mb-4">
+        <div className="bg-canvas border border-hairline rounded-md p-3">
+          <div className="text-ui-sm text-ink-faint">Accuracy</div>
+          <div className="text-metric font-semibold">{r?.accuracy == null ? "—" : `${(r.accuracy * 100).toFixed(0)}%`}</div>
+        </div>
+        <div className="bg-canvas border border-hairline rounded-md p-3">
+          <div className="text-ui-sm text-ink-faint">Avg latency</div>
+          <div className="text-metric font-semibold">{ms(r?.latency)}</div>
+        </div>
+        <div className="bg-canvas border border-hairline rounded-md p-3">
+          <div className="text-ui-sm text-ink-faint">Savings</div>
+          <div className="text-metric font-semibold">{num(r?.savings)}</div>
+        </div>
       </div>
-      <p className="muted" style={{ marginTop: 8 }}>
+      <p className="text-ink-faint" style={{ marginTop: 8 }}>
         Latency and savings come from retrieval-class commands (search / read / list) reported by
         sources like RTK. Accuracy shows "—" until a source reports it.
       </p>
-      <div className="section-title">Retrieval bottlenecks (avg latency by source)</div>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Retrieval bottlenecks (avg latency by source)</div>
       <DataTable data={intel?.retrieval_bottlenecks ?? []} columns={bottleneckCols} empty="No retrieval events." />
     </div>
   );

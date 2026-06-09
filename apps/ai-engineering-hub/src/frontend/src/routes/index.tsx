@@ -18,9 +18,9 @@ const breakdownCols: ColumnDef<Breakdown, any>[] = [
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card">
-      <div className="label">{label}</div>
-      <div className="value">{value}</div>
+    <div className="bg-canvas border border-hairline rounded-md p-3">
+      <div className="text-ui-sm text-ink-faint">{label}</div>
+      <div className="text-metric font-semibold">{value}</div>
     </div>
   );
 }
@@ -35,8 +35,8 @@ function Overview() {
 
   return (
     <div>
-      <h1 className="page-title">Overview</h1>
-      <div className="cards">
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Overview</h1>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 mb-4">
         <Stat label="Repositories" value={num(repos.data?.length)} />
         <Stat label="Sessions" value={num(sessions.data?.length)} />
         <Stat label="Tasks" value={num(tasks.data?.length)} />
@@ -47,7 +47,7 @@ function Overview() {
         <Stat label="First-pass success" value={pct(a?.productivity.first_pass_success)} />
       </div>
 
-      <div className="section-title">Tokens by source</div>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Tokens by source</div>
       <DataTable data={a?.tokens.source_breakdown ?? []} columns={breakdownCols} empty="No token events yet." />
     </div>
   );

@@ -24,7 +24,7 @@ function Repositories() {
 
   return (
     <div>
-      <h1 className="page-title">Repositories</h1>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Repositories</h1>
       <DataTable
         data={data ?? []}
         columns={columns}

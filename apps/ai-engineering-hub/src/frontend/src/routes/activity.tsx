@@ -49,30 +49,33 @@ function Activity() {
 
   return (
     <div>
-      <h1 className="page-title">
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">
         Activity{" "}
         <span className={`pill ${connected ? "ok" : "muted"}`}>{connected ? "live" : "offline"}</span>
       </h1>
-      <div className="feed" ref={parentRef}>
+      <div
+        className="bg-canvas border border-hairline rounded-md h-[calc(100vh-200px)] overflow-auto"
+        ref={parentRef}
+      >
         <div style={{ height: virt.getTotalSize(), position: "relative" }}>
           {virt.getVirtualItems().map((vi) => {
             const r = rows[vi.index];
             return (
               <div
                 key={vi.key}
-                className="feed-row"
+                className="flex gap-3 px-3 py-row border-b border-divider-soft text-ui-sm"
                 style={{ position: "absolute", top: 0, left: 0, right: 0, transform: `translateY(${vi.start}px)` }}
               >
-                <div className="dot" />
-                <span className="muted" style={{ width: 150, flex: "none" }}>{shortTime(r.ts)}</span>
+                <div className="w-2 h-2 rounded-full bg-accent mt-1 shrink-0" />
+                <span className="text-ink-faint" style={{ width: 150, flex: "none" }}>{shortTime(r.ts)}</span>
                 <span style={{ width: 110, flex: "none" }}>{r.source}</span>
                 <span style={{ width: 110, flex: "none" }}>{r.type}</span>
-                <span className="muted" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{r.detail}</span>
+                <span className="text-ink-faint" style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{r.detail}</span>
               </div>
             );
           })}
         </div>
-        {rows.length === 0 && <div className="state">Waiting for live events…</div>}
+        {rows.length === 0 && <div className="p-8 text-center text-ink-faint">Waiting for live events…</div>}
       </div>
     </div>
   );

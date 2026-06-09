@@ -98,5 +98,18 @@ export const layout = {
   rightpanelW: "var(--rightpanel-w)",
 } as const;
 
-export const tokens = { color, font, weight, fontSize, radius, space, elevation, motion, layout } as const;
+// Dark-palette static constants for contexts that cannot resolve CSS custom properties
+// at render time (e.g. SVG generation in the Stream Deck plugin). Values mirror
+// [data-theme="dark"] in tokens.css — keep in sync if those change.
+export const dark = {
+  ink:      "#f5f5f7",
+  inkMuted: "#c7c7cc",
+  inkFaint: "#8e8e93",
+  pearl:    "#242426",
+  parchment:"#151517",
+  hairline: "#3a3a3c",
+  success:  "#30d158",
+} as const;
+
+export const tokens = { color, dark, font, weight, fontSize, radius, space, elevation, motion, layout } as const;
 export type Tokens = typeof tokens;

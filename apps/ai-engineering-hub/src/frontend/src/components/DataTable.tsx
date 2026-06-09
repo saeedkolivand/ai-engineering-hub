@@ -40,19 +40,19 @@ export function DataTable<T>({
   });
 
   return (
-    <div className="dt">
-      <div className="dt-toolbar">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-3">
         <input
-          className="input"
+          className="flex-1 text-ui border border-hairline rounded-xs px-2.5 py-1.5 bg-canvas text-ink outline-none focus:border-accent"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder={searchPlaceholder}
         />
-        <span className="dt-count">{table.getRowModel().rows.length} rows</span>
+        <span className="text-ui-sm text-ink-faint">{table.getRowModel().rows.length} rows</span>
       </div>
-      <div className="dt-scroll">
-        <table className="table">
-          <thead>
+      <div className="overflow-x-auto">
+        <table className="w-full text-ui border-collapse">
+          <thead className="bg-pearl">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((h) => (
@@ -60,8 +60,9 @@ export function DataTable<T>({
                     key={h.id}
                     onClick={h.column.getToggleSortingHandler()}
                     className={[
-                      h.column.getCanSort() ? "sortable" : "",
-                      (h.column.columnDef.meta as any)?.numeric ? "num" : "",
+                      "text-ui-sm text-ink-faint font-semibold text-left px-cell py-row border-b border-hairline",
+                      h.column.getCanSort() ? "cursor-pointer select-none hover:text-ink" : "",
+                      (h.column.columnDef.meta as any)?.numeric ? "text-right font-mono" : "",
                     ].filter(Boolean).join(" ") || undefined}
                   >
                     {flexRender(h.column.columnDef.header, h.getContext())}
@@ -76,19 +77,22 @@ export function DataTable<T>({
               <tr
                 key={row.id}
                 onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                className={onRowClick ? "clickable" : ""}
+                className={onRowClick ? "cursor-pointer" : ""}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className={(cell.column.columnDef.meta as any)?.numeric ? "num" : undefined}
+                    className={[
+                      "px-cell py-row border-b border-divider-soft",
+                      (cell.column.columnDef.meta as any)?.numeric ? "text-right font-mono" : "",
+                    ].filter(Boolean).join(" ") || undefined}
                   >{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                 ))}
               </tr>
             ))}
             {table.getRowModel().rows.length === 0 && (
               <tr>
-                <td className="dt-empty" colSpan={columns.length}>
+                <td className="text-center text-ink-faint py-8" colSpan={columns.length}>
                   {empty}
                 </td>
               </tr>

@@ -10,6 +10,9 @@ export const Route = createFileRoute("/settings")({
   component: Settings,
 });
 
+const inputClass = "text-ui border border-hairline rounded-xs px-2.5 py-1.5 bg-canvas text-ink outline-none focus:border-accent";
+const labelClass = "text-ui-sm text-ink-faint";
+
 function Settings() {
   const [loaded, setLoaded] = useState<AppSettings | null>(null);
   const [autostartState, setAutostartState] = useState(false);
@@ -53,7 +56,7 @@ function Settings() {
 
   return (
     <div>
-      <h1 className="page-title">Settings</h1>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Settings</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -61,12 +64,11 @@ function Settings() {
         }}
         style={{ maxWidth: 420 }}
       >
-        <div className="card" style={{ display: "grid", gap: 12 }}>
+        <div className="bg-canvas border border-hairline rounded-md p-3" style={{ display: "grid", gap: 12 }}>
           <div>
-            <div className="label">Hub API endpoint</div>
+            <div className={labelClass}>Hub API endpoint</div>
             <input
-              className="input"
-              style={{ width: "100%" }}
+              className={`${inputClass} w-full`}
               value={HUB_BASE}
               readOnly
               title="Configured at build time; edit lib/hub.ts to change"
@@ -77,10 +79,9 @@ function Settings() {
             name="theme"
             children={(field) => (
               <label>
-                <div className="label">Theme</div>
+                <div className={labelClass}>Theme</div>
                 <select
-                  className="input"
-                  style={{ width: "100%" }}
+                  className={`${inputClass} w-full`}
                   value={field.state.value}
                   onChange={(e) => {
                     const v = e.target.value as ThemePref;
@@ -105,7 +106,7 @@ function Settings() {
                   checked={!!field.state.value}
                   onChange={(e) => field.handleChange(e.target.checked)}
                 />
-                <span className="label" style={{ margin: 0 }}>
+                <span className={`${labelClass} m-0`}>
                   Desktop notifications
                 </span>
               </label>
@@ -118,7 +119,7 @@ function Settings() {
               checked={autostartState}
               onChange={(e) => void handleAutostartChange(e.target.checked)}
             />
-            <span className="label" style={{ margin: 0 }}>
+            <span className={`${labelClass} m-0`}>
               Launch on login
             </span>
           </label>
@@ -129,8 +130,8 @@ function Settings() {
         </div>
       </form>
 
-      <div className="section-title">Integrations</div>
-      <p className="muted">
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Integrations</div>
+      <p className="text-ink-faint">
         Manage which tools the Hub tracks on the <Link to="/integrations">Integrations</Link> page.
       </p>
     </div>

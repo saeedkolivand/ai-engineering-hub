@@ -22,21 +22,21 @@ export function AppShell() {
   return (
     <div className="shell">
       <NavBar />
-      <header className="topbar">
+      <header className="area-topbar flex items-center gap-3 px-4 border-b border-hairline bg-canvas h-[var(--topbar-h)]">
         <Breadcrumbs />
-        <div className="spacer" />
+        <div className="flex-1" />
         <button
-          className="cmd-pill"
+          className="flex items-center gap-2 text-ui text-ink-faint bg-pearl border border-hairline rounded-pill px-3 py-1"
           onClick={() => setPaletteOpen(true)}
           aria-label="Open command palette"
         >
           <span>Search…</span>
-          <span className="spacer" />
-          <kbd className="cmd-key">⌘K</kbd>
+          <div className="flex-1" />
+          <kbd className="text-micro bg-canvas border border-hairline rounded-xs px-1">⌘K</kbd>
         </button>
         <span className="live-dot">Live</span>
       </header>
-      <main className="main">
+      <main className="area-main overflow-auto p-md">
         <Outlet />
       </main>
       <RightPanel />
