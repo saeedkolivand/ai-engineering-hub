@@ -1,3 +1,13 @@
+## [0.5.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.4.0...v0.5.0) (2026-06-09)
+
+### Features
+
+* **landing:** add favicon from app icons ([cf1c38b](https://github.com/saeedkolivand/ai-engineering-hub/commit/cf1c38b7618b2b95ad0af3693af995994048a78e))
+
+### Bug Fixes
+
+* **landing:** restore white text on Download button in subnav ([9339b74](https://github.com/saeedkolivand/ai-engineering-hub/commit/9339b74920af09a9dee80e86a23f20b090ae5f68))
+
 ## [0.4.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.3.0...v0.4.0) (2026-06-09)
 
 ### Features
