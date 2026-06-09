@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Engineering Hub — One pane of glass for your AI toolchain</title>
+<meta name="description" content="A local-first desktop app that reads metrics from every AI coding tool — Claude Code, Cline, OpenCode, RTK, Graphify — and shows you tokens, savings, and quality in one place. Rust + Tauri. MIT.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script>document.documentElement.className = "js";</script>
+<style>
+/* ============================================================
+   Design tokens — verbatim from
+   packages/shared-design-tokens/src/tokens.css
+   (Apple-derived, operational density). Light = :root default.
+   ============================================================ */
+:root{
+  /* Single interactive accent */
+  --color-accent:#0066cc;
+  --color-accent-focus:#0071e3;
+  --color-accent-on-dark:#2997ff;
+
+  /* Ink + light surfaces */
+  --color-ink:#1d1d1f;
+  --color-ink-muted:#333333;
+  --color-ink-faint:#7a7a7a;
+  --color-canvas:#ffffff;
+  --color-parchment:#f5f5f7;
+  --color-pearl:#fafafc;
+  --color-hairline:#e0e0e0;
+  --color-divider-soft:#f0f0f0;
+
+  /* Dark operational chrome */
+  --color-surface-1:#272729;
+  --color-surface-2:#2a2a2c;
+  --color-surface-3:#252527;
+  --color-black:#000000;
+  --color-on-dark:#ffffff;
+  --color-on-dark-muted:#cccccc;
+
+  /* Muted status */
+  --color-success:#2c7a3f;
+  --color-warn:#9a6700;
+  --color-error:#b3261e;
+
+  /* Type — Apple system fonts first (real SF Pro on Apple devices),
+     Inter as the cross-platform substitute the design doc specifies. */
+  --font-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,sans-serif;
+  --font-text:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",monospace;
+  --weight-light:300; --weight-regular:400; --weight-semibold:600; --weight-bold:700;
+
+  /* Radius */
+  --radius-none:0px; --radius-sm:8px; --radius-md:11px; --radius-lg:18px; --radius-pill:9999px;
+
+  /* Spacing — 8px rhythm */
+  --space-xxs:4px; --space-xs:8px; --space-sm:12px; --space-md:17px; --space-lg:24px;
+  --space-xl:32px; --space-xxl:48px; --space-section:80px;
+
+  /* Elevation — the ONE product shadow + transient overlay. Never on cards/buttons/text. */
+  --elevation-product:3px 5px 30px 0 rgba(0,0,0,.22);
+  --elevation-overlay:0 8px 24px rgba(0,0,0,.16);
+
+  /* Interaction */
+  --press-scale:.95;
+  --focus-ring:0 0 0 2px var(--color-accent-focus);
+
+  /* page helpers */
+  --gutter:clamp(22px,5vw,40px);
+  --wrap:1120px;
+  --wrap-narrow:840px;
+}
+
+/* ---------- reset / base ---------- */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:var(--font-text);
+  font-size:17px;            /* Apple breaks the 16px convention */
+  line-height:1.47;
+  letter-spacing:-.01em;
+  color:var(--color-ink);
+  background:var(--color-canvas);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::selection{background:rgba(0,102,204,.18)}
+
+/* visible keyboard focus, everywhere */
+a:focus-visible,button:focus-visible{
+  outline:none;
+  box-shadow:var(--focus-ring);
+  border-radius:var(--radius-sm);
+}
+
+/* ---------- type scale ---------- */
+.h1{
+  font-family:var(--font-display);
+  font-weight:var(--weight-semibold);
+  font-size:clamp(34px,6.2vw,56px);
+  line-height:1.06;
+  letter-spacing:-.02em;          /* Apple-tight, with the Inter substitution nudge */
+  margin:0;
+}
+.h2{
+  font-family:var(--font-display);
+  font-weight:var(--weight-semibold);
+  font-size:clamp(28px,4.4vw,40px);
+  line-height:1.1;
+  letter-spacing:-.018em;
+  margin:0;
+}
+.lead{
+  font-family:var(--font-display);
+  font-weight:var(--weight-regular);
+  font-size:clamp(20px,2.5vw,28px);
+  line-height:1.24;
+  letter-spacing:0;
+  margin:0;
+}
+.body-lg{font-size:19px;line-height:1.5;letter-spacing:-.01em;margin:0}
+.fine{font-size:12px;line-height:1.4;letter-spacing:-.01em}
+.eyebrow{
+  font-family:var(--font-text);
+  font-size:13px;font-weight:var(--weight-semibold);
+  letter-spacing:.07em;text-transform:uppercase;
+  color:var(--color-ink-faint);
+  margin:0 0 var(--space-md);
+}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* ---------- buttons (pill grammar) ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-text);font-size:17px;font-weight:var(--weight-regular);
+  letter-spacing:-.01em;line-height:1;
+  border-radius:var(--radius-pill);
+  padding:12px 23px;border:1px solid transparent;cursor:pointer;
+  transition:transform .12s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+  text-align:center;white-space:nowrap;
+}
+.btn:active{transform:scale(var(--press-scale))}
+.btn-primary{background:var(--color-accent);color:#fff}
+.btn-primary:hover{background:#0a6ad1}
+.btn-ghost{background:transparent;color:var(--color-accent);border-color:var(--color-accent)}
+.btn-ghost:hover{background:rgba(0,102,204,.06)}
+/* on-dark variants — Action Blue still works, ghost flips to sky/white */
+.on-dark .btn-ghost{color:#fff;border-color:rgba(255,255,255,.45)}
+.on-dark .btn-ghost:hover{background:rgba(255,255,255,.08);border-color:#fff}
+
+/* arrow text-link */
+.tlink{color:var(--color-accent);font-size:17px;display:inline-flex;align-items:center;gap:.4em;width:fit-content}
+.tlink .arr{transition:transform .2s ease}
+.tlink:hover .arr{transform:translateX(3px)}
+.on-dark .tlink{color:var(--color-accent-on-dark)}
+
+/* ============================================================
+   Global nav — slim true-black bar, quiet 12px links
+   ============================================================ */
+.globalnav{
+  position:sticky;top:0;z-index:60;
+  background:var(--color-black);
+  height:48px;
+}
+.globalnav .gnav-in{
+  max-width:1280px;margin:0 auto;height:100%;
+  display:flex;align-items:center;gap:26px;
+  padding:0 var(--gutter);
+}
+.brand{display:flex;align-items:center;gap:9px;color:#fff;flex-shrink:0}
+.brand .mark{width:22px;height:22px;flex-shrink:0}
+.brand b{font-family:var(--font-text);font-size:14px;font-weight:600;letter-spacing:-.01em}
+.gnav-links{display:flex;align-items:center;gap:22px;margin:0 auto}
+.gnav-links a{
+  color:rgba(255,255,255,.82);font-size:12px;letter-spacing:-.01em;
+  transition:color .15s ease;
+}
+.gnav-links a:hover{color:#fff}
+.gnav-right{display:flex;align-items:center;gap:16px;flex-shrink:0}
+.gnav-right a{color:rgba(255,255,255,.82);font-size:12px;display:flex;align-items:center;gap:6px}
+.gnav-right a:hover{color:#fff}
+.gnav-right svg{width:15px;height:15px;fill:currentColor}
+
+/* ============================================================
+   Sub-nav — frosted parchment, sticky, persistent CTA
+   ============================================================ */
+.subnav{
+  position:sticky;top:48px;z-index:55;height:54px;
+  background:color-mix(in srgb, var(--color-parchment) 82%, transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(0,0,0,.07);
+}
+.subnav-in{
+  max-width:1280px;margin:0 auto;height:100%;
+  display:flex;align-items:center;padding:0 var(--gutter);
+}
+.subnav .cat{font-size:21px;font-weight:600;letter-spacing:.005em;color:var(--color-ink)}
+.subnav-links{display:flex;align-items:center;gap:26px;margin-left:auto}
+.subnav-links a{font-size:14px;color:var(--color-ink-muted);letter-spacing:-.01em}
+.subnav-links a:hover{color:var(--color-ink)}
+.subnav .btn{padding:7px 17px;font-size:14px}
+
+/* ============================================================
+   Tile system — full-bleed, edge to edge, 0 gap.
+   The color change IS the divider.
+   ============================================================ */
+.tile{padding:var(--space-section) var(--gutter)}
+.tile-parchment{background:var(--color-parchment);color:var(--color-ink)}
+.tile-white{background:var(--color-canvas);color:var(--color-ink)}
+.tile-pearl{background:var(--color-pearl);color:var(--color-ink)}
+.tile-dark-1{background:var(--color-surface-1);color:var(--color-on-dark)}
+.tile-dark-2{background:var(--color-surface-2);color:var(--color-on-dark)}
+.tile-dark-3{background:var(--color-surface-3);color:var(--color-on-dark)}
+.wrap{max-width:var(--wrap);margin:0 auto;width:100%}
+.wrap-narrow{max-width:var(--wrap-narrow);margin:0 auto;width:100%}
+.center{text-align:center}
+.stack-cta{display:flex;gap:14px;flex-wrap:wrap}
+.center .stack-cta{justify-content:center}
+.muted{color:var(--color-ink-faint)}
+.on-dark .muted{color:var(--color-on-dark-muted)}
+
+/* spacing rhythm inside tiles */
+.tile .lead{margin-top:var(--space-lg);max-width:42ch}
+.center .lead{margin-left:auto;margin-right:auto}
+.tile .stack-cta{margin-top:var(--space-xl)}
+.tile .undercta{margin-top:var(--space-md)}
+
+/* scroll reveal (progressive — only when JS on) */
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease, transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+.js .reveal.d1{transition-delay:.08s}
+.js .reveal.d2{transition-delay:.16s}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{padding-top:clamp(56px,9vw,104px);padding-bottom:clamp(48px,7vw,88px)}
+.hero .lead{font-size:clamp(19px,2.3vw,26px);max-width:52ch}
+.stage{margin-top:clamp(44px,6vw,72px);display:flex;justify-content:center}
+
+/* ============================================================
+   App window renders (the ONE place shadow is allowed)
+   Each window scopes its own theme palette via --w-*.
+   ============================================================ */
+.window{
+  border-radius:14px;overflow:hidden;width:100%;
+  box-shadow:var(--elevation-product);
+  background:var(--w-canvas);
+  border:1px solid var(--w-hairline);
+}
+.app-dark{
+  --w-canvas:#1e1e20; --w-bg:#151517; --w-pearl:#242426;
+  --w-ink:#f5f5f7; --w-ink-muted:#c7c7cc; --w-ink-faint:#8e8e93;
+  --w-hairline:#3a3a3c; --w-accent:#2997ff;
+}
+.app-light{
+  --w-canvas:#ffffff; --w-bg:#f5f5f7; --w-pearl:#fafafc;
+  --w-ink:#1d1d1f; --w-ink-muted:#333; --w-ink-faint:#7a7a7a;
+  --w-hairline:#e6e6e8; --w-accent:#0066cc;
+}
+.titlebar{
+  height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;
+  background:var(--w-bg);border-bottom:1px solid var(--w-hairline);
+}
+.lights{display:flex;gap:8px}
+.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.lights i:nth-child(1){background:#ff5f57}
+.lights i:nth-child(2){background:#febc2e}
+.lights i:nth-child(3){background:#28c840}
+.titlebar .ttl{
+  margin:0 auto;font-size:12px;color:var(--w-ink-faint);
+  font-family:var(--font-text);letter-spacing:-.01em;
+  transform:translateX(-22px);
+}
+
+/* dashboard layout */
+.appbody{background:var(--w-canvas);color:var(--w-ink);font-size:13px}
+.topbar{
+  height:46px;display:flex;align-items:center;gap:14px;padding:0 16px;
+  border-bottom:1px solid var(--w-hairline);background:var(--w-canvas);
+}
+.topbar .tb-brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.kbar{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  height:28px;padding:0 10px;border-radius:var(--radius-pill);
+  border:1px solid var(--w-hairline);color:var(--w-ink-faint);font-size:12px;min-width:190px;
+}
+.kbar .kk{margin-left:auto;font-family:var(--font-mono);font-size:11px;border:1px solid var(--w-hairline);border-radius:5px;padding:1px 6px}
+.seg{display:flex;border:1px solid var(--w-hairline);border-radius:var(--radius-sm);overflow:hidden;font-size:12px}
+.seg span{padding:5px 10px;color:var(--w-ink-faint)}
+.seg span.on{background:var(--w-accent);color:#fff}
+.livedot{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--w-ink-faint)}
+.livedot::before{content:"";width:7px;height:7px;border-radius:50%;background:#28c840;box-shadow:0 0 0 0 rgba(40,200,64,.5);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(40,200,64,.45)}70%{box-shadow:0 0 0 7px rgba(40,200,64,0)}100%{box-shadow:0 0 0 0 rgba(40,200,64,0)}}
+
+.appmain{display:grid;grid-template-columns:188px 1fr}
+.sidebar{border-right:1px solid var(--w-hairline);padding:12px 10px;background:var(--w-bg)}
+.sidebar .grp{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--w-ink-faint);margin:10px 8px 6px}
+.navitem{display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:var(--radius-sm);color:var(--w-ink-muted);font-size:13px;margin-bottom:1px}
+.navitem .ic{width:14px;height:14px;flex-shrink:0;opacity:.85}
+.navitem.on{background:color-mix(in srgb,var(--w-accent) 14%,transparent);color:var(--w-accent);font-weight:600}
+.navitem .ct{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--w-ink-faint)}
+.navitem.on .ct{color:var(--w-accent)}
+
+.content{padding:16px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{border:1px solid var(--w-hairline);border-radius:var(--radius-md);padding:12px 13px;background:var(--w-canvas)}
+.metric .lab{font-size:11px;color:var(--w-ink-faint);letter-spacing:.01em}
+.metric .val{font-family:var(--font-mono);font-weight:600;font-size:22px;letter-spacing:-.01em;margin-top:7px;line-height:1}
+.metric .sub{font-size:11px;margin-top:6px;color:var(--color-success)}
+.metric .sub.dash{color:var(--w-ink-faint)}
+
+.panel{margin-top:14px;border:1px solid var(--w-hairline);border-radius:var(--radius-md);overflow:hidden}
+.panel-h{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--w-hairline);background:var(--w-pearl)}
+.panel-h b{font-size:13px;font-weight:600}
+.panel-h .grp-by{margin-left:auto;font-size:11px;color:var(--w-ink-faint)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tbl th{
+  text-align:right;font-weight:500;color:var(--w-ink-faint);font-size:11px;
+  padding:8px 13px;border-bottom:1px solid var(--w-hairline);letter-spacing:.01em;
+}
+table.tbl th:first-child{text-align:left}
+table.tbl td{padding:9px 13px;border-bottom:1px solid var(--w-hairline);text-align:right;font-family:var(--font-mono);letter-spacing:-.01em}
+table.tbl td:first-child{text-align:left;font-family:var(--font-text);color:var(--w-ink)}
+table.tbl tr:last-child td{border-bottom:none}
+.repo{display:flex;align-items:center;gap:8px}
+.repo .dot{width:7px;height:7px;border-radius:2px;background:var(--w-accent);flex-shrink:0}
+.cell-dash{color:var(--w-ink-faint)}
+.pos{color:var(--color-success)}
+.qual{color:var(--w-ink)}
+
+/* analytics window extras */
+.an-head{display:flex;align-items:baseline;gap:10px;padding:14px 16px 4px}
+.an-head b{font-size:14px;font-weight:600}
+.an-head .by{font-size:11px;color:var(--w-ink-faint)}
+.bars{padding:6px 16px 14px;display:flex;flex-direction:column;gap:9px}
+.bar-row{display:grid;grid-template-columns:96px 1fr 70px;align-items:center;gap:10px;font-size:12px}
+.bar-row .nm{color:var(--w-ink-muted)}
+.bar-track{height:9px;border-radius:5px;background:var(--w-pearl);overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;background:var(--w-accent)}
+.bar-row .amt{font-family:var(--font-mono);text-align:right;color:var(--w-ink)}
+.an-caption{padding:0 16px 14px;font-size:11px;color:var(--w-ink-faint)}
+.an-caption .ds{font-family:var(--font-mono);color:var(--w-ink-muted)}
+
+/* terminal window */
+.terminal{--w-canvas:#1b1b1d;--w-bg:#141416;--w-hairline:#2c2c2e;border-color:#2c2c2e}
+.term-body{background:#1b1b1d;padding:16px 18px;font-family:var(--font-mono);font-size:13px;line-height:1.7;color:#e7e7ea}
+.term-body .pr{color:#7a7a7e}
+.term-body .ac{color:#2997ff}
+.term-body .ok{color:#30d158}
+.term-body .dim{color:#8e8e93}
+.cursor{display:inline-block;width:8px;height:15px;background:#2997ff;vertical-align:-2px;animation:blink 1.1s steps(1) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+
+/* ============================================================
+   Integrations grid (utility cards — NO shadow, hairline only)
+   ============================================================ */
+.tools-grid{
+  margin-top:clamp(40px,5vw,60px);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+}
+.tool-card{
+  background:var(--color-canvas);border:1px solid var(--color-hairline);
+  border-radius:var(--radius-lg);padding:var(--space-lg);
+  display:flex;flex-direction:column;gap:14px;min-height:152px;
+}
+.tool-top{display:flex;align-items:center;justify-content:space-between}
+.tool-ic{
+  width:42px;height:42px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--color-parchment);color:var(--color-ink);
+}
+.tool-ic svg{width:22px;height:22px}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-ink-faint)}
+.status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--color-success)}
+.status.detected::before{background:var(--color-warn)}
+.tool-name{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:0}
+.tool-desc{font-size:14px;color:var(--color-ink-faint);line-height:1.4;margin:0;flex:1}
+.tool-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.badge{
+  font-family:var(--font-mono);font-size:11px;color:var(--color-ink-muted);
+  border:1px solid var(--color-hairline);border-radius:var(--radius-pill);padding:3px 10px;
+}
+.tool-foot .tlink{font-size:14px}
+.tool-card.add{
+  border-style:dashed;background:transparent;align-items:flex-start;justify-content:center;
+}
+.tool-card.add .tool-ic{background:transparent;border:1px dashed var(--color-hairline);color:var(--color-accent)}
+
+/* ============================================================
+   Stream Deck render (physical device — gets product shadow)
+   ============================================================ */
+.deck-stage{margin-top:clamp(40px,5vw,64px);display:flex;justify-content:center}
+.deck{
+  background:linear-gradient(180deg,#3a3a3c,#1c1c1e);
+  padding:18px;border-radius:20px;box-shadow:var(--elevation-product);
+  border:1px solid #444;
+}
+.deck-inner{
+  background:#0e0e10;border-radius:12px;padding:14px;
+  display:grid;grid-template-columns:repeat(3,98px);gap:12px;
+}
+.key{
+  width:98px;height:98px;border-radius:11px;
+  background:linear-gradient(180deg,#242427,#161618);
+  border:1px solid #2e2e31;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:11px;color:#e7e7ea;overflow:hidden;
+}
+.key .ki{width:20px;height:20px;opacity:.9}
+.key .ki svg{width:20px;height:20px;fill:none;stroke:#8e8e93;stroke-width:1.6}
+.key.accent .ki svg{stroke:#2997ff}
+.key .kl{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#8e8e93}
+.key .kv{font-family:var(--font-mono);font-weight:600;font-size:17px;letter-spacing:-.02em;line-height:1}
+.key .kv.sky{color:#2997ff}
+.key .kv.grn{color:#30d158}
+.key .kv .u{font-size:11px;color:#8e8e93;font-weight:400}
+
+/* ============================================================
+   Highlights grid (utility cards)
+   ============================================================ */
+.feat-grid{
+  margin-top:clamp(40px,5vw,56px);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+}
+.feat{
+  background:var(--color-canvas);border:1px solid var(--color-hairline);
+  border-radius:var(--radius-lg);padding:var(--space-lg);
+}
+.feat .fic{
+  width:40px;height:40px;border-radius:var(--radius-md);
+  background:var(--color-parchment);display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;
+}
+.feat .fic svg{width:22px;height:22px;fill:none;stroke:var(--color-accent);stroke-width:1.6}
+.feat h3{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:0 0 7px}
+.feat p{font-size:15px;line-height:1.45;color:var(--color-ink-faint);margin:0}
+
+/* ============================================================
+   Closing tile (quick start + final CTA)
+   ============================================================ */
+.close-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,64px);align-items:center}
+.close-grid .terminal{box-shadow:var(--elevation-product)}
+
+/* ============================================================
+   Footer — dense link columns, relaxed leading
+   ============================================================ */
+.footer{background:var(--color-parchment);color:var(--color-ink-muted);padding:64px var(--gutter) 40px}
+.foot-wrap{max-width:1120px;margin:0 auto}
+.foot-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;padding-bottom:34px;border-bottom:1px solid var(--color-hairline)}
+.foot-col h4{font-size:14px;font-weight:600;letter-spacing:-.01em;color:var(--color-ink);margin:0 0 4px}
+.foot-col a{display:block;font-size:14px;line-height:2.35;color:var(--color-ink-muted)}
+.foot-col a:hover{color:var(--color-ink)}
+.foot-legal{padding-top:22px;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
+.foot-legal p{margin:0;font-size:12px;color:var(--color-ink-faint);max-width:62ch;line-height:1.5}
+.foot-brand{display:flex;align-items:center;gap:9px;color:var(--color-ink)}
+.foot-brand .mark{width:20px;height:20px}
+.foot-brand b{font-size:13px;font-weight:600}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width:1023px){
+  .gnav-links{display:none}
+}
+@media (max-width:920px){
+  .close-grid{grid-template-columns:1fr;gap:36px}
+  .tools-grid,.feat-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:833px){
+  .subnav-links a{display:none}
+  .subnav-links{gap:0}
+}
+@media (max-width:760px){
+  .tile{padding:56px var(--gutter)}
+  .appmain{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .deck-inner{grid-template-columns:repeat(3,76px)}
+  .key{width:76px;height:76px;padding:8px}
+  .key .kv{font-size:14px}
+  .titlebar .ttl{transform:none}
+}
+@media (max-width:560px){
+  .tools-grid,.feat-grid,.foot-cols{grid-template-columns:1fr}
+  .foot-cols{gap:22px}
+  .btn{flex:1 1 auto;justify-content:center}
+  .center .stack-cta{flex-direction:column}
+  table.tbl th:nth-child(2),table.tbl td:nth-child(2){display:none} /* drop a column on tiny screens */
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important}
+  .js .reveal{opacity:1 !important;transform:none !important;transition:none !important}
+  .tlink .arr{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ========================= GLOBAL NAV ========================= -->
+<header class="globalnav">
+  <div class="gnav-in">
+    <a class="brand" href="#top" aria-label="AI Engineering Hub — home">
+      <svg class="mark" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1" y="1" width="20" height="20" rx="6" stroke="#fff" stroke-width="1.4"/>
+        <rect x="6"  y="11" width="2.6" height="5" rx="1" fill="#fff"/>
+        <rect x="9.7" y="8" width="2.6" height="8" rx="1" fill="#fff"/>
+        <rect x="13.4" y="5.5" width="2.6" height="10.5" rx="1" fill="#fff"/>
+      </svg>
+      <b>AI Engineering Hub</b>
+    </a>
+    <nav class="gnav-links" aria-label="Primary">
+      <a href="#analytics">Overview</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#streamdeck">Stream Deck</a>
+      <a href="#install">Architecture</a>
+      <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/README.md">Docs</a>
+    </nav>
+    <div class="gnav-right">
+      <a href="https://github.com/saeedkolivand/ai-engineering-hub" aria-label="GitHub repository">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        GitHub
+      </a>
+      <a href="https://github.com/saeedkolivand/ai-engineering-hub/releases">Download</a>
+    </div>
+  </div>
+</header>
+
+<!-- ========================= SUB NAV ========================= -->
+<div class="subnav" id="top">
+  <div class="subnav-in">
+    <span class="cat">AI Engineering Hub</span>
+    <nav class="subnav-links" aria-label="Sections">
+      <a href="#analytics">Analytics</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#streamdeck">Stream Deck</a>
+      <a href="#install">Get started</a>
+      <a class="btn btn-primary" href="https://github.com/saeedkolivand/ai-engineering-hub/releases">Download</a>
+    </nav>
+  </div>
+</div>
+
+<main>
+
+<!-- ========================= HERO ========================= -->
+<section class="tile tile-parchment hero">
+  <div class="wrap center">
+    <h1 class="h1 reveal">Your AI toolchain,<br>on one screen.</h1>
+    <p class="lead reveal d1">Claude Code, Cline, OpenCode, RTK, Graphify — each one quietly hoards its own usage, savings, and quality signals. AI Engineering Hub reads them where they already live and shows you all of it. On your machine.</p>
+    <div class="stack-cta reveal d2">
+      <a class="btn btn-primary" href="https://github.com/saeedkolivand/ai-engineering-hub/releases">Download</a>
+      <a class="btn btn-ghost" href="https://github.com/saeedkolivand/ai-engineering-hub">View on GitHub</a>
+    </div>
+    <p class="fine muted undercta reveal d2">Local-first · Binds to 127.0.0.1 · MIT licensed</p>
+
+    <div class="stage reveal">
+      <!-- Render A: the dashboard, in dark theme, resting on parchment -->
+      <div class="window app-dark" role="img" aria-label="AI Engineering Hub desktop dashboard showing repository metrics: tokens, savings, sessions and quality.">
+        <div class="titlebar"><span class="lights"><i></i><i></i><i></i></span><span class="ttl">AI Engineering Hub</span></div>
+        <div class="appbody">
+          <div class="topbar">
+            <span class="tb-brand">
+              <svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="1" width="20" height="20" rx="6" stroke="#2997ff" stroke-width="1.6" fill="none"/><rect x="6" y="11" width="2.6" height="5" rx="1" fill="#2997ff"/><rect x="9.7" y="8" width="2.6" height="8" rx="1" fill="#2997ff"/><rect x="13.4" y="5.5" width="2.6" height="10.5" rx="1" fill="#2997ff"/></svg>
+              Hub
+            </span>
+            <span class="kbar">Search repositories, agents, sessions… <span class="kk">⌘K</span></span>
+            <span class="seg"><span>24h</span><span class="on">30d</span><span>All</span></span>
+            <span class="livedot">Live</span>
+          </div>
+          <div class="appmain">
+            <aside class="sidebar">
+              <div class="grp">Workspace</div>
+              <div class="navitem on"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>Overview</div>
+              <div class="navitem"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 13V3M2 13h11M5 10l2.5-3 2 2L13 5"/></svg>Repositories<span class="ct">9</span></div>
+              <div class="navitem"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.2 1.3"/></svg>Sessions<span class="ct">267</span></div>
+              <div class="navitem"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5" r="2.4"/><path d="M3 13.5c0-2.5 2.2-4 5-4s5 1.5 5 4"/></svg>Agents<span class="ct">12</span></div>
+              <div class="grp">Configure</div>
+              <div class="navitem"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 2.5h6M5 8h6M5 13.5h6M2.5 2.5h.01M2.5 8h.01M2.5 13.5h.01"/></svg>Integrations<span class="ct">5</span></div>
+              <div class="navitem"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2"/></svg>Settings</div>
+            </aside>
+            <div class="content">
+              <div class="metrics">
+                <div class="metric"><div class="lab">Tokens · 30d</div><div class="val">7.5M</div><div class="sub">▲ 11.4%</div></div>
+                <div class="metric"><div class="lab">Est. savings</div><div class="val">$96.70</div><div class="sub">▲ 8.2%</div></div>
+                <div class="metric"><div class="lab">Sessions</div><div class="val">267</div><div class="sub">▲ 4 today</div></div>
+                <div class="metric"><div class="lab">Acceptance</div><div class="val">94%</div><div class="sub dash">— RTK only</div></div>
+              </div>
+              <div class="panel">
+                <div class="panel-h"><b>Repositories</b><span class="grp-by">grouped by repository · provider · agent</span></div>
+                <table class="tbl">
+                  <thead><tr><th>Repository</th><th>Sessions</th><th>Tokens</th><th>Savings</th><th>Quality</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="repo"><span class="dot"></span>ai-job-hunter-assistant-app</span></td><td>142</td><td>4.8M</td><td class="pos">$61.20</td><td class="qual">94%</td></tr>
+                    <tr><td><span class="repo"><span class="dot"></span>ai-engineering-hub</span></td><td>88</td><td>2.1M</td><td class="pos">$28.40</td><td class="cell-dash">—</td></tr>
+                    <tr><td><span class="repo"><span class="dot"></span>streamdeck-plugins</span></td><td>37</td><td>612K</td><td class="pos">$7.10</td><td class="qual">98%</td></tr>
+                    <tr><td><span class="repo"><span class="dot"></span>graphify-core</span></td><td>21</td><td>318K</td><td class="cell-dash">—</td><td class="qual">91%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ANALYTICS (dark) ========================= -->
+<section class="tile tile-dark-1 on-dark" id="analytics">
+  <div class="wrap center">
+    <p class="eyebrow reveal" style="color:rgba(255,255,255,.55)">Analytics</p>
+    <h2 class="h2 reveal">Honest by default.</h2>
+    <p class="lead reveal d1">Every metric groups by source, provider, agent, and repository. When a tool doesn't report a rate, you see a dash — never a fake&nbsp;0%. The numbers you act on are the numbers that are real.</p>
+
+    <div class="stage reveal d1">
+      <!-- Render B: analytics panel, light theme, on the dark tile -->
+      <div class="window app-light" style="max-width:760px" role="img" aria-label="Analytics panel: estimated savings grouped by provider, with a breakdown table where one source reports a dash for cache hit rate.">
+        <div class="titlebar"><span class="lights"><i></i><i></i><i></i></span><span class="ttl">Analytics — Savings</span></div>
+        <div class="appbody">
+          <div class="an-head"><b>Estimated savings</b><span class="by">· last 30 days · grouped by provider</span></div>
+          <div class="bars">
+            <div class="bar-row"><span class="nm">Anthropic</span><span class="bar-track"><span class="bar-fill" style="width:88%"></span></span><span class="amt">$58.40</span></div>
+            <div class="bar-row"><span class="nm">OpenAI</span><span class="bar-track"><span class="bar-fill" style="width:41%"></span></span><span class="amt">$27.10</span></div>
+            <div class="bar-row"><span class="nm">Local · Ollama</span><span class="bar-track"><span class="bar-fill" style="width:17%"></span></span><span class="amt">$11.20</span></div>
+          </div>
+          <div class="panel" style="margin:4px 16px 14px">
+            <table class="tbl">
+              <thead><tr><th>Provider</th><th>Sessions</th><th>Tokens</th><th>Savings</th><th>Cache hit</th></tr></thead>
+              <tbody>
+                <tr><td>Anthropic</td><td>138</td><td>4.6M</td><td class="pos">$58.40</td><td>38%</td></tr>
+                <tr><td>OpenAI</td><td>74</td><td>2.0M</td><td class="pos">$27.10</td><td>22%</td></tr>
+                <tr><td>Local · Ollama</td><td>55</td><td>0.9M</td><td class="pos">$11.20</td><td class="cell-dash">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="an-caption"><span class="ds">—</span> means the metric isn't reported by that source. The Hub never invents a zero.</p>
+        </div>
+      </div>
+    </div>
+    <a class="tlink reveal d2" href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/analytics.md" style="margin:34px auto 0">How analytics work <span class="arr">→</span></a>
+  </div>
+</section>
+
+<!-- ========================= INTEGRATIONS (white) ========================= -->
+<section class="tile tile-white" id="integrations">
+  <div class="wrap center">
+    <p class="eyebrow reveal">Integrations</p>
+    <h2 class="h2 reveal">Add a tool without a recompile.</h2>
+    <p class="lead reveal d1">Tools are rows in a registry, not a hardcoded list. Built-in collectors ship for the popular ones; anything new auto-registers and maps from the UI — or feeds in over plain HTTP.</p>
+
+    <div class="tools-grid reveal d1" style="text-align:left">
+      <article class="tool-card">
+        <div class="tool-top">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></span>
+          <span class="status">Connected</span>
+        </div>
+        <h3 class="tool-name">Claude Code</h3>
+        <p class="tool-desc">Session transcripts, token and cost data.</p>
+        <div class="tool-foot"><span class="badge">JSONL</span><a class="tlink" href="#">Mapped</a></div>
+      </article>
+
+      <article class="tool-card">
+        <div class="tool-top">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>
+          <span class="status">Connected</span>
+        </div>
+        <h3 class="tool-name">Cline</h3>
+        <p class="tool-desc">Task runs, edits, and outcomes.</p>
+        <div class="tool-foot"><span class="badge">JSON</span><a class="tlink" href="#">Mapped</a></div>
+      </article>
+
+      <article class="tool-card">
+        <div class="tool-top">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+          <span class="status">Connected</span>
+        </div>
+        <h3 class="tool-name">OpenCode</h3>
+        <p class="tool-desc">Agent sessions and retrieval signals.</p>
+        <div class="tool-foot"><span class="badge">SQLite</span><a class="tlink" href="#">Mapped</a></div>
+      </article>
+
+      <article class="tool-card">
+        <div class="tool-top">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+          <span class="status">Connected</span>
+        </div>
+        <h3 class="tool-name">RTK</h3>
+        <p class="tool-desc">Token savings and acceptance rates.</p>
+        <div class="tool-foot"><span class="badge">SQLite</span><a class="tlink" href="#">Mapped</a></div>
+      </article>
+
+      <article class="tool-card">
+        <div class="tool-top">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l3 9M16 7l-3 9"/></svg></span>
+          <span class="status">Connected</span>
+        </div>
+        <h3 class="tool-name">Graphify</h3>
+        <p class="tool-desc">Retrieval and graph-context metrics.</p>
+        <div class="tool-foot"><span class="badge">HTTP</span><a class="tlink" href="#">Mapped</a></div>
+      </article>
+
+      <article class="tool-card add">
+        <div class="tool-top">
+          <span class="tool-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="status detected">Auto-detected</span>
+        </div>
+        <h3 class="tool-name">Add your own</h3>
+        <p class="tool-desc">Unknown tools register themselves. Map them in the UI, or POST events over HTTP.</p>
+        <div class="tool-foot"><span class="badge">REGISTRY</span><a class="tlink" href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/integrations.md">Map <span class="arr">→</span></a></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= STREAM DECK (dark) ========================= -->
+<section class="tile tile-dark-2 on-dark" id="streamdeck">
+  <div class="wrap center">
+    <p class="eyebrow reveal" style="color:rgba(255,255,255,.55)">Stream Deck</p>
+    <h2 class="h2 reveal">Nine keys. Live.</h2>
+    <p class="lead reveal d1">A companion Stream Deck plugin turns the same local API into nine hardware monitors. Tokens, savings, cost-per-day — glanceable on your desk. No log parsing, no database access.</p>
+
+    <div class="deck-stage reveal d1">
+      <div class="deck" role="img" aria-label="An Elgato Stream Deck showing nine live monitor keys driven by the Hub API.">
+        <div class="deck-inner">
+          <div class="key accent"><span class="ki"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16l3-4 3 2 4-6"/></svg></span><span class="kl">Tokens 30d</span><span class="kv sky">7.5<span class="u">M</span></span></div>
+          <div class="key"><span class="ki"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/></svg></span><span class="kl">Sessions</span><span class="kv">267</span></div>
+          <div class="key accent"><span class="ki"><svg viewBox="0 0 24 24"><path d="M12 3v18M8 7h6a3 3 0 010 6H9a3 3 0 000 6h7"/></svg></span><span class="kl">Savings</span><span class="kv grn">$96</span></div>
+
+          <div class="key"><span class="ki"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 8-9"/></svg></span><span class="kl">Cost / day</span><span class="kv">$9.4</span></div>
+          <div class="key accent"><span class="ki"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></span><span class="kl">Acceptance</span><span class="kv sky">94<span class="u">%</span></span></div>
+          <div class="key"><span class="ki"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-9-9"/><path d="M12 7v5l3 2"/></svg></span><span class="kl">Cache hit</span><span class="kv">38<span class="u">%</span></span></div>
+
+          <div class="key"><span class="ki"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-3.3 3-5 7-5s7 1.7 7 5"/></svg></span><span class="kl">Agents</span><span class="kv">12</span></div>
+          <div class="key accent"><span class="ki"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></span><span class="kl">Active</span><span class="kv grn">3</span></div>
+          <div class="key"><span class="ki"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></span><span class="kl">Status</span><span class="kv grn">OK</span></div>
+        </div>
+      </div>
+    </div>
+    <a class="tlink reveal d2" href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/streamdeck.md" style="margin:34px auto 0">Set up the plugin <span class="arr">→</span></a>
+  </div>
+</section>
+
+<!-- ========================= HIGHLIGHTS (white) ========================= -->
+<section class="tile tile-white">
+  <div class="wrap center">
+    <p class="eyebrow reveal">Why it's different</p>
+    <h2 class="h2 reveal">Built for operators, not dashboards.</h2>
+    <p class="lead reveal d1">GitHub, Linear, and Datadog density — with Apple-grade restraint. An operational tool, not a KPI marketing screen.</p>
+
+    <div class="feat-grid reveal d1" style="text-align:left">
+      <div class="feat">
+        <span class="fic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
+        <h3>Dynamic sources</h3>
+        <p>Tools register themselves. No enum to edit, no rebuild to ship a new collector.</p>
+      </div>
+      <div class="feat">
+        <span class="fic"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16l3-4 3 2 4-6"/></svg></span>
+        <h3>Dimensional analytics</h3>
+        <p>Group every metric by source, provider, agent, and repository — and trust the dashes.</p>
+      </div>
+      <div class="feat">
+        <span class="fic"><svg viewBox="0 0 24 24"><path d="M3 5h18M6 5v14M6 12h6M12 5v14"/></svg></span>
+        <h3>Drill down anywhere</h3>
+        <p>Repository → Session → Task → Agent, tables-first. Press ⌘K to jump straight to it.</p>
+      </div>
+      <div class="feat">
+        <span class="fic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 9h.01M12 9h.01M8 13h.01M12 13h.01"/></svg></span>
+        <h3>Stream Deck plugin</h3>
+        <p>Nine live hardware monitors driven by the same API. No log parsing on the device.</p>
+      </div>
+      <div class="feat">
+        <span class="fic"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7z"/></svg></span>
+        <h3>One process</h3>
+        <p>A Rust core — Axum, SQLx, SQLite — runs inside Tauri. No sidecars, nothing to deploy.</p>
+      </div>
+      <div class="feat">
+        <span class="fic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18z"/></svg></span>
+        <h3>Themed from tokens</h3>
+        <p>Light, dark, and system — the desktop UI and the plugin stay consistent automatically.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= QUICK START + CTA (dark) ========================= -->
+<section class="tile tile-dark-1 on-dark" id="install">
+  <div class="wrap">
+    <div class="close-grid">
+      <div class="reveal">
+        <p class="eyebrow" style="color:rgba(255,255,255,.55)">Quick start</p>
+        <h2 class="h2">Running in under a minute.</h2>
+        <p class="lead" style="margin-top:var(--space-lg)">Install, then start the desktop app — UI, Hub API, and collectors in one process. Enable your tools and data flows in within about five seconds.</p>
+        <div class="stack-cta" style="margin-top:var(--space-xl)">
+          <a class="btn btn-primary" href="https://github.com/saeedkolivand/ai-engineering-hub/releases">Download</a>
+          <a class="btn btn-ghost" href="https://github.com/saeedkolivand/ai-engineering-hub">View on GitHub</a>
+        </div>
+        <p class="fine undercta" style="color:var(--color-on-dark-muted)">Windows (MSI · NSIS) · Rust + Tauri&nbsp;v2 · React&nbsp;19 · MIT</p>
+      </div>
+
+      <div class="reveal d1">
+        <div class="window terminal" role="img" aria-label="Terminal showing pnpm install and pnpm app:dev starting the Hub API, collectors, and desktop UI.">
+          <div class="titlebar"><span class="lights"><i></i><i></i><i></i></span><span class="ttl">zsh — ai-engineering-hub</span></div>
+          <div class="term-body">
+<span class="pr">$</span> pnpm install<br>
+<span class="pr">$</span> pnpm app:dev<br>
+<span class="dim">&nbsp;&nbsp;▸ Hub API</span> &nbsp;&nbsp;&nbsp;&rarr; <span class="ac">127.0.0.1:47800</span><br>
+<span class="dim">&nbsp;&nbsp;▸ Collectors</span> &nbsp;&rarr; Claude Code, RTK, OpenCode … <span class="ok">✓</span><br>
+<span class="dim">&nbsp;&nbsp;▸ UI</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&rarr; desktop window ready<br>
+<span class="ok">✓</span> data flowing in <span class="ac">~5s</span><span class="cursor"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ========================= FOOTER ========================= -->
+<footer class="footer">
+  <div class="foot-wrap">
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h4>Product</h4>
+        <a href="#analytics">Overview</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#streamdeck">Stream Deck</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/design-system.md">Design system</a>
+      </div>
+      <div class="foot-col">
+        <h4>Developers</h4>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/getting-started.md">Getting started</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/architecture.md">Architecture</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/api.md">API reference</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/database.md">Database</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/configuration.md">Configuration</a>
+      </div>
+      <div class="foot-col">
+        <h4>Project</h4>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub">GitHub</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/releases">Releases</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/CONTRIBUTING.md">Contributing</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/CODE_OF_CONDUCT.md">Code of conduct</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/SECURITY.md">Security</a>
+      </div>
+      <div class="foot-col">
+        <h4>Resources</h4>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/README.md">Documentation</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/docs/troubleshooting.md">Troubleshooting</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/saeedkolivand/ai-engineering-hub/blob/main/LICENSE">License</a>
+      </div>
+    </div>
+    <div class="foot-legal">
+      <div>
+        <p>AI Engineering Hub is open source under the MIT license. The Hub binds to 127.0.0.1 — your data never leaves your machine. Design language adapted from Apple's published web aesthetics; not affiliated with Apple.</p>
+        <p style="margin-top:8px">© 2026 AI Engineering Hub contributors.</p>
+      </div>
+      <div class="foot-brand">
+        <svg class="mark" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="20" height="20" rx="6" stroke="currentColor" stroke-width="1.4"/>
+          <rect x="6" y="11" width="2.6" height="5" rx="1" fill="currentColor"/>
+          <rect x="9.7" y="8" width="2.6" height="8" rx="1" fill="currentColor"/>
+          <rect x="13.4" y="5.5" width="2.6" height="10.5" rx="1" fill="currentColor"/>
+        </svg>
+        <b>AI Engineering Hub</b>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Restrained, progressive motion — scroll reveal, reduced-motion aware. */
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var els = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+  if (reduce || !('IntersectionObserver' in window)) {
+    els.forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
