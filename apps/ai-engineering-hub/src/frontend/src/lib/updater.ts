@@ -1,38 +1,49 @@
 // Self-update check. Runs only inside the packaged Tauri shell (no-op in the browser).
-// On startup it asks the configured release endpoint for a newer, signed build and, with the
-// user's consent, downloads, installs, and relaunches. Tauri-only modules are dynamically
-// imported so the browser bundle never loads them.
+// Sets update state in updateStore so the UpdateBanner and Settings page can react.
+// Tauri-only modules are dynamically imported so the browser bundle never loads them.
+import { updateStore } from "./updateStore";
 import { notify } from "./notify";
 
 function inTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
-export async function checkForUpdates(): Promise<void> {
+export async function checkForUpdates(silent = true): Promise<void> {
   if (!inTauri()) return;
+  updateStore.setState((s) => ({ ...s, checking: true, error: null }));
   try {
     const { check } = await import("@tauri-apps/plugin-updater");
     const update = await check();
+    updateStore.setState((s) => ({ ...s, checking: false, lastChecked: Date.now() }));
     if (!update) return;
 
-    await notify(
-      "AI Engineering Hub update available",
-      `Version ${update.version} is ready to install.`,
-    );
+    updateStore.setState((s) => ({
+      ...s,
+      dismissed: false,
+      pending: {
+        version: update.version,
+        body: update.body ?? null,
+        install: async () => {
+          await update.downloadAndInstall();
+          await notify("Update installed", "AI Engineering Hub will now restart.");
+          const { relaunch } = await import("@tauri-apps/plugin-process");
+          await relaunch();
+        },
+      },
+    }));
 
-    const proceed = window.confirm(
-      `A new version (${update.version}) is available.\n\n` +
-        `${update.body ?? ""}\n\nDownload and install now? The app will restart.`,
-    );
-    if (!proceed) return;
-
-    await update.downloadAndInstall();
-    await notify("Update installed", "AI Engineering Hub will now restart.");
-
-    const { relaunch } = await import("@tauri-apps/plugin-process");
-    await relaunch();
+    if (!silent) {
+      await notify(
+        "AI Engineering Hub update available",
+        `Version ${update.version} is ready to install.`,
+      );
+    }
   } catch (err) {
-    // Never block startup on update failures.
-    console.warn("update check failed:", err);
+    updateStore.setState((s) => ({
+      ...s,
+      checking: false,
+      error: String((err as Error)?.message ?? err),
+    }));
+    if (!silent) console.warn("update check failed:", err);
   }
 }

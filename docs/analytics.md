@@ -25,9 +25,9 @@ Every breakdown groups by one of four **independent** dimensions:
 | --- | --- | --- |
 | **Tokens** | daily / weekly / monthly usage + breakdowns by all four dimensions | `token_usage` events |
 | **Savings** | total + by source | `savings` events (savings-capable sources) |
-| **Productivity** | first-pass success, intervention rate, retry rate, task completion, build/test success | events carrying those fields |
-| **Quality** | build / test / lint success, regressions | events carrying `*_status` / `regression` |
-| **Retrieval** | accuracy, avg latency, savings | `retrieval` events |
+| **Productivity** | intervention rate, build/test success *(live)*; task completion, first-pass success, retry rate *(external push only)* | `build`/`test`/`intervention` events (Claude Code collector); `task` events or `POST /api/v1/ingest` for the rest |
+| **Quality** | build / test / lint success, regressions *(live)*; | `build`/`test`/`lint` events (Claude Code collector) |
+| **Retrieval** | accuracy *(external push only)*, avg latency, savings | `retrieval` events; accuracy requires external evaluator push |
 
 The `tokens` value sums `input + output + cache_creation + cache_read`; the components are kept in
 the event payload for future per-type breakdowns.
@@ -37,22 +37,29 @@ the event payload for future per-type breakdowns.
 Rate/score fields are **`null` (rendered "—") when no connected tool reports that signal yet** —
 deliberately distinct from a real `0%`.
 
-- Token usage, savings, tasks, and retrieval latency/savings are **live** from the built-in
-  collectors.
-- Productivity and Quality rates, and retrieval **accuracy**, read **"—"** because the installed
-  tools don't emit build/test/lint outcomes, first-pass success, intervention/retry counts, or
-  retrieval accuracy.
+**Live — derived by the Claude Code collector from its Bash tool-results:**
 
-They populate the moment a source provides them — a CI/quality reporter, or a `POST /api/v1/ingest`
-carrying `build_status`, `test_status`, `lint_status`, `task_status`, `retries`, etc. Each rate is
-computed over a **field-present denominator** (only events that carry the field), so the percentage
-is correct as soon as data exists.
+- **Quality**: build success/failure (`build_status`), test success/failure + regressions
+  (`test_status`, `regression`), lint success/failure (`lint_status`).
+- **Productivity**: build success, test success, intervention rate (emitted on
+  `[Request interrupted by user]` / interrupted tool results, carrying a `reason` field).
+- **Intelligence**: `intervention_hotspots` (fed by the same `intervention` events).
+
+**Still "—" until fed by an external CI reporter or `POST /api/v1/ingest`:**
+
+- Productivity: `task_completion_rate`, `first_pass_success`, `retry_rate` — no honest local signal
+  exists in the Claude Code JSONL; they require an external task/CI reporter.
+- Retrieval `accuracy` — populated only when a source or evaluator pushes `$.accuracy` on
+  `retrieval` events.
+
+Each rate is computed over a **field-present denominator** (only events that carry the field), so
+the percentage is correct as soon as any data exists — partial coverage is fine.
 
 ```jsonc
-// Example payloads that light up the empty widgets:
-{ "source": "ci", "event_type": "build", "payload": { "build_status": "success" } }
-{ "source": "ci", "event_type": "test",  "payload": { "test_status": "success" } }
-{ "source": "my-agent", "event_type": "task", "payload": { "task_status": "completed", "retries": 0 } }
+// Example payloads for the "still —" fields:
+{ "source": "ci",     "event_type": "task",      "payload": { "task_status": "completed", "retries": 0 } }
+{ "source": "ci",     "event_type": "build",     "payload": { "build_status": "success", "command": "npm run build" } }
+{ "source": "my-eval","event_type": "retrieval", "payload": { "accuracy": 0.92 } }
 ```
 
 ## Repository intelligence

@@ -43,7 +43,8 @@ function Retrieval() {
       </div>
       <p className="text-ink-faint" style={{ marginTop: 8 }}>
         Latency and savings come from retrieval-class commands (search / read / list) reported by
-        sources like RTK. Accuracy shows "—" until a source reports it.
+        sources like RTK. Accuracy populates when a source or evaluator pushes <code>$.accuracy</code>
+        {" "}on <code>retrieval</code> events via <code>POST /api/v1/ingest</code> — it shows "—" until then.
       </p>
       <div className="text-ui-lg font-semibold mt-6 mb-2">Retrieval bottlenecks (avg latency by source)</div>
       <DataTable data={intel?.retrieval_bottlenecks ?? []} columns={bottleneckCols} empty="No retrieval events." />
