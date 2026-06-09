@@ -1,3 +1,9 @@
+## [0.6.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.5.0...v0.6.0) (2026-06-09)
+
+### Features
+
+* **frontend:** restyle desktop UI to match landing-page design system ([4a1631e](https://github.com/saeedkolivand/ai-engineering-hub/commit/4a1631ef0b2210a9c4d73dd08e488bf00d245868))
+
 ## [0.5.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.4.0...v0.5.0) (2026-06-09)
 
 ### Features
