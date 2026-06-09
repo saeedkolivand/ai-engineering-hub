@@ -1,3 +1,9 @@
+## [0.8.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.7.2...v0.8.0) (2026-06-09)
+
+### Features
+
+* **analytics:** derive quality/productivity metrics from Claude Code + update UI ([19bbba4](https://github.com/saeedkolivand/ai-engineering-hub/commit/19bbba4679592b99e4496e21d4a2e7580f734d05))
+
 ## [0.7.2](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.7.1...v0.7.2) (2026-06-09)
 
 ### Bug Fixes
