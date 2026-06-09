@@ -184,7 +184,11 @@ impl ClaudeCode {
             (None, String::new(), String::new())
         } else {
             let (rid, rname) = repo_ref(cwd);
-            (Some(rid), rname, cwd.trim_start_matches(r"\\?\").to_string())
+            (
+                Some(rid),
+                rname,
+                cwd.trim_start_matches(r"\\?\").to_string(),
+            )
         };
         let session_id = v.get("sessionId").and_then(Value::as_str).map(String::from);
 
@@ -457,7 +461,12 @@ fn intervention_event(v: &Value) -> Option<CollectedEvent> {
     };
 
     let reason = text
-        .map(|t| t.trim().trim_start_matches('[').trim_end_matches(']').to_string())
+        .map(|t| {
+            t.trim()
+                .trim_start_matches('[')
+                .trim_end_matches(']')
+                .to_string()
+        })
         .unwrap_or_else(|| "Request interrupted by user".to_string());
 
     Some(CollectedEvent {
@@ -895,8 +904,13 @@ mod tests {
     #[tokio::test]
     async fn pairing_survives_across_polls() {
         let cc = ClaudeCode::new();
-        let p1 = cc.drive(&[&assistant_bash("toolu_p1", "cargo build")]).await;
-        assert!(find(&p1, "build").is_none(), "no event until result arrives");
+        let p1 = cc
+            .drive(&[&assistant_bash("toolu_p1", "cargo build")])
+            .await;
+        assert!(
+            find(&p1, "build").is_none(),
+            "no event until result arrives"
+        );
         let p2 = cc.drive(&[&user_result("toolu_p1", false, false)]).await;
         let b = find(&p2, "build").expect("build event after result");
         assert_eq!(b.event.payload["build_status"], "success");
