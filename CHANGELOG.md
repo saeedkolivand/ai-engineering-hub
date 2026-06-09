@@ -1,3 +1,9 @@
+## [0.7.2](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.7.1...v0.7.2) (2026-06-09)
+
+### Bug Fixes
+
+* **streamdeck-plugin:** remove Debug flag from manifest ([d574f2d](https://github.com/saeedkolivand/ai-engineering-hub/commit/d574f2d651a09a47cad9cdac4d02fe2f8418cfb0))
+
 ## [0.7.1](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.7.0...v0.7.1) (2026-06-09)
 
 ### Bug Fixes
