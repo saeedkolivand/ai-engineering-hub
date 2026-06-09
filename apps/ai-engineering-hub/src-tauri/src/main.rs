@@ -2,13 +2,13 @@
 //! HTTP/WebSocket server (from `aeh-core`) inside it — no sidecars, no extra binaries.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(target_os = "macos")]
+use tauri::menu::Submenu;
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{TrayIconBuilder, TrayIconEvent},
     Emitter, Manager,
 };
-#[cfg(target_os = "macos")]
-use tauri::menu::Submenu;
 
 fn show_main_window(app: &tauri::AppHandle) {
     if let Some(win) = app.get_webview_window("main") {
@@ -62,8 +62,13 @@ fn main() {
 
             // ── System tray ──────────────────────────────────────────────────────────
             let show = MenuItem::with_id(app, "show", "Show Dashboard", true, None::<&str>)?;
-            let check_update =
-                MenuItem::with_id(app, "check_update", "Check for Updates…", true, None::<&str>)?;
+            let check_update = MenuItem::with_id(
+                app,
+                "check_update",
+                "Check for Updates…",
+                true,
+                None::<&str>,
+            )?;
             let sep1 = PredefinedMenuItem::separator(app)?;
             let sep2 = PredefinedMenuItem::separator(app)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -95,14 +100,12 @@ fn main() {
             #[cfg(target_os = "macos")]
             {
                 // App menu
-                let about =
-                    PredefinedMenuItem::about(app, Some("About AI Engineering Hub"), None)?;
+                let about = PredefinedMenuItem::about(app, Some("About AI Engineering Hub"), None)?;
                 let services = PredefinedMenuItem::services(app, None)?;
                 let hide = PredefinedMenuItem::hide(app, None)?;
                 let hide_others = PredefinedMenuItem::hide_others(app, None)?;
                 let show_all = PredefinedMenuItem::show_all(app, None)?;
-                let quit_native =
-                    PredefinedMenuItem::quit(app, Some("Quit AI Engineering Hub"))?;
+                let quit_native = PredefinedMenuItem::quit(app, Some("Quit AI Engineering Hub"))?;
                 let app_menu = Submenu::with_items(
                     app,
                     "AI Engineering Hub",
@@ -151,8 +154,7 @@ fn main() {
                     ],
                 )?;
 
-                let menu_bar =
-                    Menu::with_items(app, &[&app_menu, &edit_menu, &window_menu])?;
+                let menu_bar = Menu::with_items(app, &[&app_menu, &edit_menu, &window_menu])?;
                 app.set_menu(menu_bar)?;
             }
 
