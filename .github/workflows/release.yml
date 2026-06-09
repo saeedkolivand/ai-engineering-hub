@@ -163,21 +163,24 @@ jobs:
 
           # Installers + signed updater bundles
           find artifacts -type f \( \
-            -name "*.AppImage"           -o \
-            -name "*.AppImage.tar.gz"    -o \
+            -name "*.AppImage"            -o \
+            -name "*.AppImage.sig"        -o \
+            -name "*.AppImage.tar.gz"     -o \
             -name "*.AppImage.tar.gz.sig" -o \
-            -name "*.msi"                -o \
-            -name "*.msi.zip"            -o \
-            -name "*.msi.zip.sig"        -o \
-            -name "*.nsis.exe"           -o \
-            -name "*.nsis.zip"           -o \
-            -name "*.nsis.zip.sig"       -o \
-            -name "*.deb"                -o \
-            -name "*.rpm"                -o \
-            -name "*.dmg"                -o \
-            -name "*.app.tar.gz"         -o \
-            -name "*.app.tar.gz.sig"     -o \
-            -name "*.streamDeckPlugin"   \
+            -name "*.msi"                 -o \
+            -name "*.msi.sig"             -o \
+            -name "*.msi.zip"             -o \
+            -name "*.msi.zip.sig"         -o \
+            -name "*-setup.exe"           -o \
+            -name "*-setup.exe.sig"       -o \
+            -name "*.nsis.zip"            -o \
+            -name "*.nsis.zip.sig"        -o \
+            -name "*.deb"                 -o \
+            -name "*.rpm"                 -o \
+            -name "*.dmg"                 -o \
+            -name "*.app.tar.gz"          -o \
+            -name "*.app.tar.gz.sig"      -o \
+            -name "*.streamDeckPlugin"    \
           \) -exec gh release upload "$TAG" {} \
                --repo "${{ github.repository }}" --clobber \;
 

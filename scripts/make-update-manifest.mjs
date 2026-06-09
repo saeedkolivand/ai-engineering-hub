@@ -30,14 +30,17 @@ function walkSigFiles(dir) {
 
 function platformOf(filename) {
   const f = filename.toLowerCase();
-  if (f.endsWith(".appimage.tar.gz.sig")) return "linux-x86_64";
-  if (f.endsWith(".msi.zip.sig") || f.endsWith(".nsis.zip.sig")) return "windows-x86_64";
+  // macOS
   if (f.endsWith(".app.tar.gz.sig")) {
     if (f.includes("aarch64")) return "darwin-aarch64";
     if (f.includes("x86_64")) return "darwin-x86_64";
-    // fallback: arm runner produces arm artifact
     return "darwin-aarch64";
   }
+  // Linux — Tauri v2 (.AppImage.sig) and v1 (.AppImage.tar.gz.sig)
+  if (f.endsWith(".appimage.tar.gz.sig") || f.endsWith(".appimage.sig")) return "linux-x86_64";
+  // Windows — Tauri v2: .msi.sig / -setup.exe.sig; v1: .msi.zip.sig / .nsis.zip.sig
+  if (f.endsWith(".msi.zip.sig") || f.endsWith(".msi.sig")) return "windows-x86_64-msi";
+  if (f.endsWith(".nsis.zip.sig") || f.endsWith("-setup.exe.sig")) return "windows-x86_64";
   return null;
 }
 
