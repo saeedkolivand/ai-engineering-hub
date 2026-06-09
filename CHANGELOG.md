@@ -1,3 +1,9 @@
+## [0.7.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.6.0...v0.7.0) (2026-06-09)
+
+### Features
+
+* tailwind v4 migration, system tray, stream deck SVG key faces ([9846b2c](https://github.com/saeedkolivand/ai-engineering-hub/commit/9846b2c7f11b148244b2bc5f1fe6be4e6ea54125))
+
 ## [0.6.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.5.0...v0.6.0) (2026-06-09)
 
 ### Features
