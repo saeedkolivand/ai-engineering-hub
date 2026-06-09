@@ -23,7 +23,7 @@ function Agents() {
 
   return (
     <div>
-      <h1 className="page-title">Agents</h1>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Agents</h1>
       <DataTable
         data={data ?? []}
         columns={columns}

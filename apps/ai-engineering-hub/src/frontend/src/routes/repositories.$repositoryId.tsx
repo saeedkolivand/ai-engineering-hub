@@ -31,9 +31,9 @@ function RepositoryDetail() {
 
   return (
     <div>
-      <h1 className="page-title">{repo.data?.name ?? "Repository"}</h1>
-      <div className="muted">{repo.data?.path}</div>
-      <div className="section-title">Sessions</div>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-1">{repo.data?.name ?? "Repository"}</h1>
+      <div className="text-ink-faint mb-4">{repo.data?.path}</div>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Sessions</div>
       <DataTable
         data={sessions.data ?? []}
         columns={columns}

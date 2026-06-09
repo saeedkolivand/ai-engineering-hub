@@ -31,10 +31,10 @@ function Quality() {
 
   return (
     <div>
-      <h1 className="page-title">Quality</h1>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Quality</h1>
       <DataTable data={rows} columns={cols} searchPlaceholder="Filter metrics…" />
       {noData && (
-        <p className="muted" style={{ marginTop: 12 }}>
+        <p className="text-ink-faint" style={{ marginTop: 12 }}>
           "—" means no connected tool reports build/test/lint outcomes yet. These populate when a
           source emits <code>build_status</code>/<code>test_status</code>/<code>lint_status</code>
           {" "}events (e.g. a CI reporter or the <code>/api/v1/ingest</code> API).

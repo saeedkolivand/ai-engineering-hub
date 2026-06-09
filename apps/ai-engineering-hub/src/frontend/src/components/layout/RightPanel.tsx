@@ -9,10 +9,10 @@ export function RightPanel() {
 
   if (!sel.kind) {
     return (
-      <aside className="right">
-        <div className="rp-kind">Context</div>
-        <div className="rp-title">Nothing selected</div>
-        <p className="rp-empty">
+      <aside className="area-right border-l border-hairline bg-canvas overflow-y-auto px-md py-3">
+        <div className="text-micro uppercase tracking-[.06em] text-ink-faint mb-1">Context</div>
+        <div className="text-ui-lg font-semibold mb-2">Nothing selected</div>
+        <p className="text-ui-sm text-ink-faint mt-2">
           Select a row in any table to see its metadata, related entities, and quick actions here.
           Press <strong>⌘K</strong> / <strong>Ctrl K</strong> to search.
         </p>
@@ -30,16 +30,16 @@ export function RightPanel() {
   };
 
   return (
-    <aside className="right">
-      <div className="rp-kind">{sel.kind}</div>
-      <div className="rp-title">{sel.label ?? sel.id}</div>
+    <aside className="area-right border-l border-hairline bg-canvas overflow-y-auto px-md py-3">
+      <div className="text-micro uppercase tracking-[.06em] text-ink-faint mb-1">{sel.kind}</div>
+      <div className="text-ui-lg font-semibold mb-2">{sel.label ?? sel.id}</div>
       {Object.entries(meta).map(([k, v]) => (
-        <div className="rp-row" key={k}>
-          <span className="k">{k}</span>
+        <div className="flex justify-between py-[5px] border-b border-divider-soft text-ui-sm" key={k}>
+          <span className="text-ink-faint">{k}</span>
           <span>{v ?? "—"}</span>
         </div>
       ))}
-      <div className="rp-actions">
+      <div className="flex flex-col gap-2 mt-3">
         {sel.kind && drillTo[sel.kind] && (
           <button className="btn" onClick={() => navigate({ to: drillTo[sel.kind as string] })}>
             Open {sel.kind}

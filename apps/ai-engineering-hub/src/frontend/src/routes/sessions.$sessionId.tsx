@@ -26,8 +26,8 @@ function SessionDetail() {
 
   return (
     <div>
-      <h1 className="page-title">Session {sessionId.slice(0, 8)}</h1>
-      <div className="section-title">Tasks</div>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Session {sessionId.slice(0, 8)}</h1>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Tasks</div>
       <DataTable
         data={tasks.data ?? []}
         columns={columns}

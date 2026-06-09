@@ -10,7 +10,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "aeh-core"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "ai-engineering-hub-tauri"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "aeh-core",
  "serde",
@@ -4451,7 +4451,7 @@ dependencies = [
 
 [[package]]
 name = "shared-events"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "chrono",
  "serde",
@@ -4462,7 +4462,7 @@ dependencies = [
 
 [[package]]
 name = "shared-types"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "chrono",
  "serde",

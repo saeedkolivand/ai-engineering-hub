@@ -26,10 +26,10 @@ export function Breadcrumbs() {
   }
 
   return (
-    <div className="crumbs">
+    <div className="flex items-center gap-1 text-ui text-ink-faint">
       {crumbs.map((c, i) => (
-        <span key={c.to}>
-          {i > 0 && <span className="sep">/</span>}
+        <span key={c.to} className="flex items-center gap-1">
+          {i > 0 && <span className="opacity-40">/</span>}
           {i === crumbs.length - 1 ? <span>{c.label}</span> : <Link to={c.to}>{c.label}</Link>}
         </span>
       ))}

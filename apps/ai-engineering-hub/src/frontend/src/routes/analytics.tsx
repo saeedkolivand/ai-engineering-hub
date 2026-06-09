@@ -30,15 +30,15 @@ function Analytics() {
 
   return (
     <div>
-      <h1 className="page-title">Analytics</h1>
+      <h1 className="text-metric font-display font-semibold tracking-[-0.3px] m-0 mb-4">Analytics</h1>
 
-      <div className="row-gap">
-        <span className="muted">Group tokens by</span>
-        <div className="seg-ctrl">
+      <div className="flex gap-3 flex-wrap items-center mb-4">
+        <span className="text-ink-faint">Group tokens by</span>
+        <div className="flex rounded-xs border border-hairline overflow-hidden">
           {(["source", "provider", "agent", "repository"] as GroupBy[]).map((g) => (
             <button
               key={g}
-              className={groupBy === g ? "active" : ""}
+              className={`px-3 py-1 text-ui border-0 ${groupBy === g ? "bg-canvas font-semibold text-ink" : "bg-transparent text-ink-faint"}`}
               onClick={() => setGroupBy(g)}
             >
               {g}
@@ -47,14 +47,14 @@ function Analytics() {
         </div>
       </div>
 
-      <div className="section-title">Token usage by {groupBy}</div>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Token usage by {groupBy}</div>
       <DataTable data={tokenBreakdown[groupBy]} columns={valueCols(groupBy, num)} empty="No token events." />
 
-      <div className="section-title">Savings by source</div>
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Savings by source</div>
       <DataTable data={data?.savings.by_source ?? []} columns={valueCols("Source", num)} empty="No savings events." />
 
-      <div className="section-title">Productivity</div>
-      <div className="cards">
+      <div className="text-ui-lg font-semibold mt-6 mb-2">Productivity</div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 mb-4">
         <Stat label="First-pass success" value={pct(data?.productivity.first_pass_success)} />
         <Stat label="Intervention rate" value={pct(data?.productivity.intervention_rate)} />
         <Stat label="Retry rate" value={pct(data?.productivity.retry_rate)} />
@@ -62,7 +62,7 @@ function Analytics() {
         <Stat label="Build success" value={pct(data?.productivity.build_success)} />
         <Stat label="Test success" value={pct(data?.productivity.test_success)} />
       </div>
-      <p className="muted" style={{ marginTop: 8 }}>
+      <p className="text-ink-faint" style={{ marginTop: 8 }}>
         "—" means no connected tool reports that signal yet. Token usage and savings above are
         live; productivity rates populate when a source emits task/build/test outcomes.
       </p>
@@ -72,9 +72,9 @@ function Analytics() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card">
-      <div className="label">{label}</div>
-      <div className="value">{value}</div>
+    <div className="bg-canvas border border-hairline rounded-md p-3">
+      <div className="text-ui-sm text-ink-faint">{label}</div>
+      <div className="text-metric font-semibold">{value}</div>
     </div>
   );
 }

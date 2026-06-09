@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@elgato/streamdeck": "^2.1.0",
+    "shared-design-tokens": "workspace:*",
     "shared-events": "workspace:*",
     "shared-sdk": "workspace:*",
     "shared-types": "workspace:*"
