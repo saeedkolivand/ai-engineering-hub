@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@elgato/cli": "^1.7.4",
+    "@types/node": "^22.0.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
   }
