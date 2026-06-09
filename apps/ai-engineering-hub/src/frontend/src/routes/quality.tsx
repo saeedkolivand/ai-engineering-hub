@@ -16,7 +16,7 @@ interface MetricRow {
 }
 const cols: ColumnDef<MetricRow, any>[] = [
   { accessorKey: "metric", header: "Metric" },
-  { accessorKey: "value", header: "Value", cell: (c) => pct(c.getValue() as number | null) },
+  { accessorKey: "value", header: "Value", meta: { numeric: true }, cell: (c) => pct(c.getValue() as number | null) },
 ];
 
 function Quality() {

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
 
 const breakdownCols: ColumnDef<Breakdown, any>[] = [
   { accessorKey: "label", header: "Source" },
-  { accessorKey: "value", header: "Tokens", cell: (c) => num(c.getValue() as number) },
+  { accessorKey: "value", header: "Tokens", meta: { numeric: true }, cell: (c) => num(c.getValue() as number) },
 ];
 
 function Stat({ label, value }: { label: string; value: string }) {

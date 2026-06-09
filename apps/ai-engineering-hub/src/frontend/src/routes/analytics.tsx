@@ -14,7 +14,7 @@ export const Route = createFileRoute("/analytics")({
 
 const valueCols = (label: string, fmt: (n: number) => string): ColumnDef<Breakdown, any>[] => [
   { accessorKey: "label", header: label },
-  { accessorKey: "value", header: "Value", cell: (c) => fmt(c.getValue() as number) },
+  { accessorKey: "value", header: "Value", meta: { numeric: true }, cell: (c) => fmt(c.getValue() as number) },
 ];
 
 function Analytics() {
@@ -34,15 +34,17 @@ function Analytics() {
 
       <div className="row-gap">
         <span className="muted">Group tokens by</span>
-        {(["source", "provider", "agent", "repository"] as GroupBy[]).map((g) => (
-          <button
-            key={g}
-            className={`btn ${groupBy === g ? "" : "subtle"}`}
-            onClick={() => setGroupBy(g)}
-          >
-            {g}
-          </button>
-        ))}
+        <div className="seg-ctrl">
+          {(["source", "provider", "agent", "repository"] as GroupBy[]).map((g) => (
+            <button
+              key={g}
+              className={groupBy === g ? "active" : ""}
+              onClick={() => setGroupBy(g)}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="section-title">Token usage by {groupBy}</div>

@@ -89,9 +89,12 @@ function Palette({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function CommandPalette() {
-  const [open, setOpen] = useState(false);
-  useHotkeys("mod+k", (e) => { e.preventDefault(); setOpen((o) => !o); }, { enableOnFormTags: true }, []);
-  useHotkeys("escape", () => setOpen(false), { enableOnFormTags: true, enabled: open }, [open]);
-  return open ? <Palette onClose={() => setOpen(false)} /> : null;
+interface CommandPaletteProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function CommandPalette({ open, onClose }: CommandPaletteProps) {
+  useHotkeys("escape", onClose, { enableOnFormTags: true, enabled: open }, [open, onClose]);
+  return open ? <Palette onClose={onClose} /> : null;
 }
