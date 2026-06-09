@@ -1,3 +1,9 @@
+## [0.7.1](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.7.0...v0.7.1) (2026-06-09)
+
+### Bug Fixes
+
+* **streamdeck-plugin:** add @types/node to resolve Buffer typecheck error ([ddfd528](https://github.com/saeedkolivand/ai-engineering-hub/commit/ddfd5282515a419cf6420cae0137c67827230eda))
+
 ## [0.7.0](https://github.com/saeedkolivand/ai-engineering-hub/compare/v0.6.0...v0.7.0) (2026-06-09)
 
 ### Features
